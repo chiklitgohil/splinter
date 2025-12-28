@@ -1,4 +1,51 @@
+# Python
 venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Database
 tasks.db
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project planning files (DO NOT COMMIT)
+PROJECT_PLAN.md
+ORIGINAL_PLAN.md
+demo_video_script.md
+demo_video_script.txt
+notes.md
+todo.md
+*_plan.md
+*_script.*
+
+# Temporary/old files
+1766910669503_styles.css
+1766910681731_schema.sql
+*.bak
+*.old
+*.tmp
+
+# Environment
+.env
+.env.local

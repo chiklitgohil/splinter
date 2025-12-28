@@ -1,40 +1,57 @@
-{# tasks.html - recursive macro for rendering nested tasks #}
+{# Recursive macro for rendering nested tasks #}
 {% macro render_task(task, depth=0) %}
-<li class="list-group-item border-0 position-relative task-row" data-task-id="{{ task.id }}" style="--depth:{{ depth }};">
-
-  {% if depth > 0 %}
-  <div class="connector-line" style="left: calc(1rem + var(--depth) * 12px);"></div>
-  {% endif %}
-
-  <div class="d-flex align-items-center justify-content-between px-2 py-1">
-    <div class="d-flex align-items-center gap-2 flex-grow-1">
-      <i class="fa-solid fa-grip-vertical text-secondary small"></i>
-
-      <form onsubmit="return false;" class="m-0 p-0">
-        <input class="form-check-input me-2" type="checkbox" onchange="toggleDone({{ task.id }})" {% if task.is_done %}checked{% endif %}>
-      </form>
-
-      <span class="task-title flex-grow-1 {% if task.is_done %}text-decoration-line-through text-muted{% endif %}"
-            id="task-title-{{ task.id }}" onclick="selectTask({{ task.id }})">{{ task.title }}</span>
-
-      <input type="text" class="form-control form-control-sm d-none task-edit-input"
-             id="task-input-{{ task.id }}" value="{{ task.title }}"
-             onblur="saveTitle({{ task.id }})" onkeydown="handleTitleKey(event, {{ task.id }})">
+<li class="task-row" data-task-id="{{ task.id }}" style="--depth: {{ depth }};">
+    
+    {# Connector line for nested tasks #}
+    {% if depth > 0 %}
+    <div class="connector-line"></div>
+    {% endif %}
+    
+    <div class="task-content">
+        <div class="task-main">
+            {# Checkbox for completion #}
+            <input 
+                type="checkbox" 
+                class="form-check-input task-checkbox" 
+                onchange="toggleTaskDone({{ task.id }})"
+                {% if task.is_done %}checked{% endif %}
+            >
+            
+            {# Task title #}
+            <span 
+                class="task-title {% if task.is_done %}task-done{% endif %}"
+                onclick="selectTask({{ task.id }})"
+            >
+                {{ task.title }}
+            </span>
+        </div>
+        
+        {# Hover actions #}
+        <div class="task-actions">
+            <button 
+                class="btn btn-sm btn-outline-primary" 
+                onclick="promptAddSubtask({{ task.id }})"
+                title="Add Subtask"
+            >
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button 
+                class="btn btn-sm btn-outline-danger" 
+                onclick="deleteTask({{ task.id }})"
+                title="Delete Task"
+            >
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
     </div>
-
-    <div class="task-actions d-flex align-items-center gap-1 opacity-0">
-      <button class="btn btn-sm btn-outline-success p-1" onclick="addToMyDay({{ task.id }}, this)"><i class="fa-solid fa-star"></i></button>
-      <button class="btn btn-sm btn-outline-primary p-1" onclick="promptAddSubtask({{ task.id }})"><i class="fa-solid fa-plus"></i></button>
-      <button class="btn btn-sm btn-outline-danger p-1" onclick="deleteTask({{ task.id }})"><i class="fa-solid fa-trash"></i></button>
-    </div>
-  </div>
-
-  {% if task.children and task.children|length > 0 %}
-    <ul class="list-group border-0 ms-3 mt-1">
-      {% for child in task.children %}
-        {{ render_task(child, depth + 1) }}
-      {% endfor %}
+    
+    {# Recursively render children #}
+    {% if task.children and task.children|length > 0 %}
+    <ul class="task-children">
+        {% for child in task.children %}
+            {{ render_task(child, depth + 1) }}
+        {% endfor %}
     </ul>
-  {% endif %}
+    {% endif %}
 </li>
 {% endmacro %}

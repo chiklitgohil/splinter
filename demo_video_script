@@ -1,0 +1,71 @@
+## Video Demo Script (3-4 minutes)
+
+### Introduction (30 seconds)
+"Hi, I'm Chiklit Gohil. This is my CS50 final project: Nested To-Do, a task manager that allows infinite nesting of tasks using recursive algorithms."
+
+### Live Demo (2 minutes)
+1. Add "CS50 Final Project" task
+2. Add subtasks: "Backend", "Frontend", "Documentation"  
+3. Add sub-subtasks under "Backend": "Database Schema", "API Routes", "Testing"
+4. Add another level: "Write Unit Tests", "Integration Tests"
+5. Click "Backend" → show detail pane
+6. Edit description with auto-save
+7. Mark "Database Schema" complete
+8. Delete entire "Documentation" subtree
+9. Show 5 levels of nesting visually
+
+### Technical Explanation (1 minute)
+"The core challenge was recursive rendering. Each task can have children, which have their own children, infinitely. I solved this with:
+1. A Jinja2 macro that calls itself recursively
+2. A Python function that builds nested dictionaries
+3. CSS that uses custom properties for dynamic indentation
+
+When you delete a parent, a recursive SQL function removes all descendants in one transaction."
+
+### Conclusion (30 seconds)
+"This project taught me recursive algorithms, database foreign keys, and full-stack web development. The simple interface hides complex recursive logic underneath. Thank you for watching!"
+
+## Design Decisions (For Video Explanation)
+
+### Why Recursion?
+The key technical challenge is implementing infinite nesting. I chose recursive functions in both Python (for database queries) and Jinja2 (for template rendering) because they naturally mirror the hierarchical structure of tasks.
+
+### Why SQLite?
+SQLite is perfect for this single-user application. The self-referencing foreign key (`parent_id`) elegantly represents the tree structure without requiring complex graph database features.
+
+### Why Three-Pane Layout?
+The layout mirrors how people think: browse tasks (left/center), focus on details (right). This reduces cognitive load compared to modal dialogs or page navigation.
+
+---
+
+## Future Extensions (Not Implemented)
+
+These features could be added later but are **not part of the CS50 submission**:
+
+### Category A: Organization ⭐
+- [ ] Categories/Lists (Work, Personal, etc.)
+- [ ] "My Day" feature with midnight auto-reset
+- [ ] "Inbox" for uncategorized tasks
+- [ ] Task search/filter
+
+### Category B: Progress Tracking 📊
+- [ ] Progress bar showing % of subtasks completed
+- [ ] Visual indicators for task status
+- [ ] Task statistics
+
+### Category C: UX Enhancements ✨
+- [ ] Drag-and-drop reordering
+- [ ] Collapse/expand subtasks
+- [ ] Keyboard shortcuts
+- [ ] Toast notifications
+
+### Category D: Advanced Features 🚀
+- [ ] Soft delete with undo
+- [ ] Bulk actions
+- [ ] Dark mode
+- [ ] Export to JSON/CSV
+
+### Category E: Visual Polish 🎨
+- [ ] Animations and transitions
+- [ ] Custom icons and colors
+- [ ] Due dates and reminders

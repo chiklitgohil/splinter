@@ -1,81 +1,82 @@
-Here’s your **complete technical specification and documentation** for the **Nested To-Do App**, written in full Markdown, ready for your GitHub README.md or CS50 final project submission.
+# Nested To-Do App - CS50 Final Project
 
----
-
-# **Nested To-Do App**
-
-#### Video Demo:
-
-*(Add your YouTube URL here once you record it)*
-
-#### Author:
-
-**Chiklit Gohil**
-
-#### Technologies:
-
-Python (Flask), SQLite, HTML, CSS (Bootstrap), JavaScript (ES6), SortableJS
-
----
-
-## **Overview**
-
-Nested To-Do is a minimalist, yet deeply functional web-based task manager designed to let users **infinitely nest tasks** and **visually break large goals into smaller subtasks**.
-
-It combines the simplicity of a linear to-do list with the power of hierarchical task management, allowing every task to contain any number of subtasks, each with its own description, completion state, and metadata.
-
-This app was developed as a **CS50 Final Project**, adhering to principles of clean UI, minimal friction, and deep structural flexibility.
-
----
-
-## **Core Idea**
-
-Most task apps stop at one or two levels of nesting. This project allows **infinite recursion** — a task may contain a subtask, which itself can contain other subtasks, and so on.
+A minimalist web-based task manager that allows infinite nesting of tasks. Users can break down large goals into smaller subtasks recursively, creating a hierarchical structure ideal for project planning. Most task apps stop at one or two levels of nesting. This project allows **infinite recursion** — a task may contain a subtask, which itself can contain other subtasks, and so on.
 
 This structure makes it ideal for programmers, writers, and planners who break problems into smaller atomic units.
 
----
 
-## **Key Features**
+## Technologies:
 
-| Feature                            | Description                                                                                                  |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Infinite nesting**               | Each task can have an unlimited number of subtasks, visually connected with a branching structure.           |
-| **Collapsible hierarchy**          | Parent tasks can expand or collapse their subtasks for better focus and reduced visual clutter.              |
-| **Inline editing**                 | Titles and descriptions can be edited directly by clicking; no separate “Edit” buttons or modals.            |
-| **Auto-save**                      | Task details are saved automatically after 1 second of inactivity, no manual save needed.                    |
-| **My Day**                         | Users can mark tasks as “My Day” to focus on them temporarily; the list resets every midnight automatically. |
-| **Bulk actions**                   | Select multiple tasks to mark as done, delete, or add to “My Day”.                                           |
-| **Soft delete + Undo**             | Deleted tasks are moved to a “trash” state and can be restored within a grace period.                        |
-| **Progress tracking**              | Parent tasks show a live progress bar based on completion ratio of subtasks.                                 |
-| **Drag-and-drop reordering**       | Users can rearrange tasks or move subtasks between parents using SortableJS.                                 |
-| **Responsive design**              | Works smoothly across desktop and mobile, with a collapsible sidebar and adaptive layouts.                   |
-| **Accessible & keyboard-friendly** | Includes ARIA roles, keyboard shortcuts for navigation, and proper semantic HTML.                            |
+Backend: Python (Flask)
+Database: SQLite
+Frontend: HTML, CSS (Bootstrap 5), JavaScript (Vanilla ES6)
+No external libraries beyond Bootstrap (removed SortableJS, no drag-drop)
 
----
+## Core Features (Only These!)
+✅ 1. Basic Task Management
 
-## **Project Structure**
+Add a new task
+View all tasks in a list
+Mark task as complete/incomplete (checkbox)
+Delete a task (with recursive deletion of all subtasks)
 
-```
+✅ 2. Infinite Nesting (Your Unique Feature)
+
+Add subtasks to any existing task
+Display hierarchical structure with visual indentation
+Recursive rendering: parent → child → grandchild → infinite depth
+Visual connector lines showing parent-child relationships
+
+✅ 3. Task Details Panel
+
+Click any task to view full details
+Edit task title (inline or in detail pane)
+Edit task description (textarea with auto-save)
+View immediate child tasks of selected task
+
+✅ 4. Database
+
+SQLite with simple schema
+Parent-child relationship via parent_id foreign key
+Basic CRUD operations
+
+✅ 5. Clean Web Interface
+
+Three-pane layout: Sidebar | Task List | Detail Pane
+Responsive design (stacks on mobile)
+Bootstrap 5 for clean styling
+No modals or popups - everything inline
+
+
+
+## Project Structure
 nested-todo/
 │
-├── app.py                  # Flask backend server
-├── tasks.db                # SQLite database
+├── app.py                  # Flask backend (all API routes)
+├── requirements.txt        # Flask only
 │
 ├── static/
-│   ├── styles.css          # Custom styles
-│   └── logo.png            # Optional app logo
+│   └── styles.css          # Custom CSS
 │
 ├── templates/
-│   ├── layout.html         # Base HTML structure with Bootstrap
-│   ├── index.html          # Main page layout (sidebar + task list + detail pane)
-│   └── tasks.html          # Jinja macro for recursive task rendering
+│   ├── layout.html         # Base template
+│   ├── index.html          # Main interface
+│   └── tasks.html          # Recursive task macro
 │
-├── venv/                   # Python virtual environment
-└── README.md               # Documentation (this file)
-```
+└── README.md     
 
----
+## Backend API Endpoints
+
+Backend API Endpoints (Minimal)
+EndpointMethodDescription/GETMain interface/api/tasksGETGet all top-level tasks with children/api/task/<id>GETGet single task with details/api/task/addPOSTAdd new task (with optional parent_id)/api/task/<id>/updatePOSTUpdate title or description/api/task/<id>/togglePOSTToggle done/undone/api/task/<id>/deletePOSTDelete task and all subtasks
+
+Removed endpoints:
+
+❌ /api/list/<name> (no categories/filters)
+❌ /api/task/reorder (no drag-drop)
+❌ /api/task/<id>/soft_delete (hard delete only)
+❌ /api/task/<id>/today (no "My Day")
+❌ /api/tasks/bulk (no bulk actions)
 
 ## **Component Breakdown**
 
@@ -372,3 +373,98 @@ The structure and modular backend allow easy evolution into a full productivity 
 ---
 
 Would you like me to generate a version of this README with **GitHub-flavored Markdown formatting** (links, tables, collapsible sections, icons) and **proper CS50 submission tone (academic but concise)** next? It’ll be plug-and-play for your repo and submission form.
+
+# CORE ESSENTIALS
+These are the minimum viable features that demonstrate your understanding and make the app functional:
+1. Basic Task Management
+
+✅ Add a task
+✅ View all tasks
+✅ Mark task as done/undone (checkbox)
+✅ Delete a task
+
+2. Nested Structure (Your Unique Feature!)
+
+✅ Add subtasks to any task
+✅ Display tasks in hierarchical structure with indentation
+✅ Recursive rendering (parent → children → grandchildren...)
+
+3. Task Details
+
+✅ Click on a task to view details
+✅ Edit task title
+✅ Edit task description
+
+4. Database
+
+✅ SQLite database with proper schema
+✅ Store tasks with parent-child relationships
+✅ Basic CRUD operations
+
+5. Web Interface
+
+✅ Clean, usable UI (Bootstrap is fine)
+✅ Sidebar with basic navigation
+✅ Main task list view
+✅ Detail pane for selected task
+
+# Feature List
+Implement these AFTER core is solid. Pick 3-5 based on what excites you:
+Category A: Organization ⭐
+
+ Categories/Lists (Work, Personal, etc.)
+ "My Day" feature with midnight auto-reset
+ "Inbox" for uncategorized tasks
+ Task search/filter
+
+Category B: Progress Tracking 📊
+
+ Progress bar showing % of subtasks completed
+ Visual indicators for task status
+ Task statistics (total tasks, completed, etc.)
+ Due dates and reminders
+
+Category C: UX Enhancements ✨
+
+ Drag-and-drop reordering (SortableJS)
+ Collapse/expand subtasks
+ Inline editing (double-click to edit)
+ Auto-save (1-second debounce)
+ Keyboard shortcuts
+ Toast notifications for actions
+
+Category D: Advanced Features 🚀
+
+ Soft delete with undo
+ Bulk actions (select multiple tasks)
+ Dark mode toggle
+ Export tasks to JSON/CSV
+ Task templates
+ Recurring tasks
+
+Category E: Visual Polish 🎨
+
+ Connector lines showing parent-child relationships
+ Hover effects revealing action buttons
+ Active task highlighting
+ Animations and transitions
+ Responsive design for mobile
+ Custom icons and colors
+
+ ## **Key Features**
+
+| Feature                            | Description                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Infinite nesting**               | Each task can have an unlimited number of subtasks, visually connected with a branching structure.           |
+| **Collapsible hierarchy**          | Parent tasks can expand or collapse their subtasks for better focus and reduced visual clutter.              |
+| **Inline editing**                 | Titles and descriptions can be edited directly by clicking; no separate “Edit” buttons or modals.            |
+| **Auto-save**                      | Task details are saved automatically after 1 second of inactivity, no manual save needed.                    |
+| **My Day**                         | Users can mark tasks as “My Day” to focus on them temporarily; the list resets every midnight automatically. |
+| **Bulk actions**                   | Select multiple tasks to mark as done, delete, or add to “My Day”.                                           |
+| **Soft delete + Undo**             | Deleted tasks are moved to a “trash” state and can be restored within a grace period.                        |
+| **Progress tracking**              | Parent tasks show a live progress bar based on completion ratio of subtasks.                                 |
+| **Drag-and-drop reordering**       | Users can rearrange tasks or move subtasks between parents using SortableJS.                                 |
+| **Responsive design**              | Works smoothly across desktop and mobile, with a collapsible sidebar and adaptive layouts.                   |
+| **Accessible & keyboard-friendly** | Includes ARIA roles, keyboard shortcuts for navigation, and proper semantic HTML.                            |
+
+---
