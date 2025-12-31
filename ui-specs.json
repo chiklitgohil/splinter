@@ -1,0 +1,407 @@
+{
+  "ui_elements": [
+    {
+      "element": "task_indentation",
+      "description": "Set consistent indentation for all task levels using fixed pixel values per depth level. Indentation = depth * 2rem, no compounding.",
+      "implementation": "Use data-depth attribute with explicit CSS selectors: [data-depth='0'] = 0, [data-depth='1'] = 2rem, [data-depth='2'] = 4rem, etc.",
+      "error_handling": "If depth attribute missing, default to depth 0. Max depth capped at 10 levels for performance.",
+      "dependencies": ["task_list_rendering", "recursive_macro"],
+      "validation": "Measure left margin of nested tasks; should be exactly depth * 2rem from left edge"
+    },
+    {
+      "element": "details_pane_trigger",
+      "trigger": "click_on_task_text_only",
+      "description": "Details pane opens ONLY when clicking the <span class='task-title'> element, not checkbox, icons, or task container background.",
+      "implementation": "onclick='selectTask(id)' bound only to .task-title span, not .task-content div",
+      "error_handling": "No action if click detected on .task-checkbox, .collapse-arrow, .drag-handle, or .task-actions elements",
+      "dependencies": ["task_rendering", "event_delegation"],
+      "validation": "Click tests: checkbox → no pane open, chevron → no pane open, title text → pane opens"
+    },
+    {
+      "element": "drag_handle_icon",
+      "position": "leftmost_in_task_row",
+      "icon": "fa-grip-vertical",
+      "visual_order": "drag_handle → collapse_arrow → checkbox → task_text → actions",
+      "actions": [
+        {
+          "action": "drag_by_handle",
+          "trigger": "mousedown_on_drag_handle",
+          "description": "Click and drag the grip icon to reorder task or change parent"
+        },
+        {
+          "action": "drag_by_double_click",
+          "trigger": "dblclick_on_task_content",
+          "description": "Double-click anywhere in task box (except interactive elements) to enable drag mode"
+        }
+      ],
+      "cursor": "grab_when_hovering_handle, grabbing_while_dragging",
+      "error_handling": "If drag attempted on locked task or invalid drop target, show red outline and snap back to origin. Display tooltip: 'Cannot move task here'",
+      "dependencies": ["sortablejs_library", "task_reordering_api"],
+      "validation": "Drag task with 3 subtasks to different parent; verify hierarchy updates correctly"
+    },
+    {
+      "element": "ellipsis_menu",
+      "position": "rightmost_in_task_actions",
+      "icon": "fa-ellipsis-vertical",
+      "replaces": "delete_icon",
+      "menu_items": [
+        {
+          "item": "delete_task",
+          "label": "Delete",
+          "icon": "fa-trash",
+          "color": "danger",
+          "action": "deleteTask(id)",
+          "confirmation": "required"
+        },
+        {
+          "item": "placeholder_future",
+          "label": "Future Action",
+          "icon": "fa-star",
+          "color": "secondary",
+          "disabled": true
+        }
+      ],
+      "behavior": "Click ellipsis → show dropdown menu below icon, click outside → close menu",
+      "styling": "Bootstrap dropdown component with custom positioning",
+      "error_handling": "If menu opens off-screen (near bottom edge), position above icon instead. Close menu on ESC key.",
+      "dependencies": ["bootstrap_dropdown", "task_actions"],
+      "validation": "Open menu on task near bottom of viewport; verify menu appears above icon"
+    },
+    {
+      "element": "subtask_hover_actions",
+      "trigger": "hover_over_subtask",
+      "description": "When hovering any subtask (depth > 0), show parent task action buttons: 'Add Subtask' icon and ellipsis menu",
+      "implementation": "CSS :hover on .task-row reveals .task-actions with opacity transition",
+      "actions_shown": [
+        {
+          "icon": "fa-level-down-alt",
+          "tooltip": "Add Subtask",
+          "action": "promptAddSubtask(id)"
+        },
+        {
+          "icon": "fa-ellipsis-vertical",
+          "tooltip": "More actions",
+          "action": "toggleEllipsisMenu(id)"
+        }
+      ],
+      "error_handling": "If no hover support (touch device), show actions permanently on focus",
+      "dependencies": ["task_rendering", "css_hover_states"],
+      "validation": "Hover over 3rd-level subtask; verify action icons appear"
+    },
+    {
+      "element": "add_subtask_from_details",
+      "position": "end_of_subtask_list_in_details_pane",
+      "icon": "fa-plus-circle",
+      "button_style": "outline-primary, full-width",
+      "label": "+ Add Subtask",
+      "action": "promptAddSubtask(selectedTaskId)",
+      "description": "Button at bottom of subtask list in details pane to add child task to currently selected task",
+      "error_handling": "Disabled if no task selected. Show tooltip: 'Select a task first'",
+      "dependencies": ["details_pane", "selected_task_state"],
+      "validation": "Select task, click + button, add subtask; verify it appears in both list and details pane"
+    },
+    {
+      "element": "details_pane_subtask_separator",
+      "replaces": "subtasks_label",
+      "type": "horizontal_rule",
+      "html": "<hr class='my-3'>",
+      "description": "Replace 'Subtasks' label with <hr> element above subtask list",
+      "styling": "margin: 1.5rem 0, border-color: #dee2e6",
+      "error_handling": "None required",
+      "dependencies": ["details_pane_rendering"],
+      "validation": "Open details pane; verify horizontal line appears instead of 'Subtasks' text"
+    },
+    {
+      "element": "sidebar_toggle_button",
+      "current_position": "sidebar_header_top_right",
+      "new_position": "bottom_of_screen_left_corner",
+      "icon": "fa-bars",
+      "styling": "position: fixed, bottom: 20px, left: 20px, z-index: 1000",
+      "button_class": "btn btn-outline-secondary rounded-circle",
+      "size": "48x48px",
+      "action": "toggleSidebar()",
+      "states": {
+        "expanded": {
+          "icon": "fa-chevron-left",
+          "tooltip": "Collapse sidebar"
+        },
+        "collapsed": {
+          "icon": "fa-chevron-right",
+          "tooltip": "Expand sidebar"
+        }
+      },
+      "error_handling": "If sidebar animation in progress, queue toggle action. Prevent rapid clicking.",
+      "dependencies": ["sidebar_state"],
+      "validation": "Click toggle; verify sidebar animates smoothly and button icon changes"
+    },
+    {
+      "element": "details_pane_close_button",
+      "position": "bottom_left_of_details_pane",
+      "icon": "fa-xmark",
+      "button_style": "btn-sm btn-outline-secondary",
+      "label": "Close",
+      "action": "closeDetailsPane()",
+      "styling": "position: absolute, bottom: 20px, left: 20px",
+      "error_handling": "Disabled if details pane already closed",
+      "dependencies": ["details_pane_state"],
+      "validation": "Click close button; verify pane closes and state resets"
+    },
+    {
+      "element": "details_pane_esc_key",
+      "trigger": "keydown_event_esc",
+      "description": "Pressing ESC key closes details pane if currently open",
+      "implementation": "document.addEventListener('keydown', e => { if (e.key === 'Escape' && detailsPaneOpen) closeDetailsPane(); })",
+      "error_handling": "No action if details pane already closed. Don't interfere with other ESC handlers (modals, dropdowns).",
+      "dependencies": ["keyboard_event_listeners", "details_pane_state"],
+      "validation": "Open details pane, press ESC; verify it closes. Press ESC again; verify no errors."
+    },
+    {
+      "element": "profile_picture_placeholder",
+      "position": "sidebar_header_left",
+      "replaces": "task_icon_and_app_name",
+      "type": "circular_avatar",
+      "size": "40x40px",
+      "default_image": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233a6df0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-size='18' font-family='Arial'%3EU%3C/text%3E%3C/svg%3E",
+      "alt_text": "User profile",
+      "styling": "border-radius: 50%, border: 2px solid #dee2e6, object-fit: cover",
+      "sidebar_states": {
+        "expanded": {
+          "display": "profile_picture + app_name",
+          "layout": "flex row with 0.5rem gap"
+        },
+        "collapsed": {
+          "display": "profile_picture_only",
+          "center_in_sidebar": true
+        }
+      },
+      "error_handling": "If profile image fails to load, show default SVG avatar with 'U' letter",
+      "dependencies": ["sidebar_header"],
+      "validation": "Collapse sidebar; verify only profile pic shows. Expand; verify name reappears."
+    },
+    {
+      "element": "completed_tasks_section",
+      "position": "bottom_of_task_list",
+      "description": "Collapsible section showing all tasks where is_done = 1. Separated from active tasks with visual divider.",
+      "header": {
+        "text": "Completed",
+        "icon_collapsed": "fa-chevron-right",
+        "icon_expanded": "fa-chevron-down",
+        "count_badge": "total_completed_tasks"
+      },
+      "default_state": "collapsed",
+      "toggle_action": "toggleCompletedSection()",
+      "styling": "margin-top: 2rem, padding-top: 1rem, border-top: 2px solid #dee2e6",
+      "task_rendering": "Render completed tasks with muted styling, strikethrough applied, checkbox checked",
+      "persistence": "Save collapsed/expanded state in localStorage",
+      "error_handling": "If no completed tasks, show 'No completed tasks' message. Hide section if count = 0.",
+      "dependencies": ["task_filtering", "local_storage"],
+      "validation": "Complete 3 tasks; verify they move to Completed section. Toggle section; verify it expands/collapses."
+    },
+    {
+      "element": "list_title_underline",
+      "current_state": "horizontal_rule_below_list_name",
+      "action": "remove",
+      "description": "Remove the <hr> or border-bottom from .list-title-header that appears below 'All Tasks' text",
+      "implementation": "Delete border-bottom CSS property from .list-title-header class",
+      "error_handling": "None required",
+      "dependencies": ["list_title_header_styling"],
+      "validation": "View All Tasks; verify no horizontal line appears below title"
+    },
+    {
+      "element": "desktop_responsive_layout",
+      "target_resolutions": ["1920x1080", "1440x900", "1366x768", "1280x720"],
+      "grid_behavior": "CSS Grid with fr units for fluid scaling",
+      "breakpoints": {
+        "large_desktop": ">1600px: sidebar 300px, tasks 1.5fr, details 1fr",
+        "standard_desktop": "1200-1600px: sidebar 250px, tasks 1fr, details 1fr",
+        "small_desktop": "900-1200px: sidebar 200px, tasks 1fr, hide details pane",
+        "minimum": "<900px: Not supported (desktop-only design)"
+      },
+      "font_scaling": "Use rem units for text, min font size 14px",
+      "scroll_behavior": "Task list and details pane independently scrollable",
+      "error_handling": "Show warning banner if viewport width < 900px: 'This app is optimized for desktop browsers'",
+      "dependencies": ["css_grid", "media_queries"],
+      "validation": "Test at each breakpoint; verify no horizontal scrolling, all interactive elements accessible"
+    }
+  ],
+  "state_management": {
+    "details_pane_open": {
+      "type": "boolean",
+      "default": false,
+      "persistence": "session_only"
+    },
+    "selected_task_id": {
+      "type": "integer_or_null",
+      "default": null,
+      "persistence": "session_only"
+    },
+    "sidebar_collapsed": {
+      "type": "boolean",
+      "default": false,
+      "persistence": "localStorage_key_sidebar_state"
+    },
+    "completed_tasks_collapsed": {
+      "type": "boolean",
+      "default": true,
+      "persistence": "localStorage_key_completed_collapsed"
+    },
+    "ellipsis_menu_open_task_id": {
+      "type": "integer_or_null",
+      "default": null,
+      "description": "Track which task's ellipsis menu is currently open"
+    }
+  },
+  "user": {
+    "profile_picture": {
+      "type": "url_or_svg_datauri",
+      "default": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233a6df0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-size='18' font-family='Arial'%3EU%3C/text%3E%3C/svg%3E",
+      "fallback": "Show 'U' letter in colored circle if image load fails"
+    },
+    "name": {
+      "type": "string",
+      "default": "User",
+      "display": "Next to profile picture when sidebar expanded"
+    }
+  },
+  "api_dependencies": {
+    "reorder_task": {
+      "endpoint": "/api/task/reorder",
+      "method": "POST",
+      "payload": {
+        "task_id": "integer",
+        "new_parent_id": "integer_or_null",
+        "new_position": "integer"
+      },
+      "required_for": ["drag_handle_icon"]
+    },
+    "get_completed_tasks": {
+      "endpoint": "/api/tasks/completed",
+      "method": "GET",
+      "response": "array_of_task_objects",
+      "required_for": ["completed_tasks_section"]
+    }
+  },
+  "error_handling": {
+    "invalid_drag": {
+      "condition": "Drop target is invalid (e.g., dragging parent into its own child)",
+      "response": "Show red outline on task, snap back to original position, display tooltip: 'Cannot move task here'",
+      "duration": "2 seconds"
+    },
+    "esc_without_details": {
+      "condition": "ESC key pressed when details pane already closed",
+      "response": "No action, silent fail"
+    },
+    "add_subtask_no_selection": {
+      "condition": "User clicks 'Add Subtask' in details pane when no task selected",
+      "response": "Show alert: 'Please select a task first'"
+    },
+    "ellipsis_menu_off_screen": {
+      "condition": "Ellipsis menu would render below viewport bottom edge",
+      "response": "Position menu above icon instead of below, adjust with collision detection"
+    },
+    "double_click_non_task": {
+      "condition": "User double-clicks in empty space or non-task element",
+      "response": "No drag mode initiated, no visual feedback"
+    },
+    "sidebar_toggle_spam": {
+      "condition": "User rapidly clicks sidebar toggle multiple times",
+      "response": "Debounce toggle action (300ms), queue only latest click, ignore intermediate clicks"
+    }
+  },
+  "libraries_required": {
+    "sortablejs": {
+      "version": ">=1.15.0",
+      "cdn": "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js",
+      "purpose": "Drag-and-drop task reordering"
+    },
+    "bootstrap_dropdown": {
+      "version": "5.3.2",
+      "included_in": "bootstrap_bundle",
+      "purpose": "Ellipsis menu dropdown functionality"
+    }
+  },
+  "validation_tests": [
+    {
+      "test": "indentation_consistency",
+      "steps": [
+        "Create task with 5 levels of nesting",
+        "Measure left margin at each level",
+        "Verify: L1=0, L2=2rem, L3=4rem, L4=6rem, L5=8rem"
+      ]
+    },
+    {
+      "test": "details_pane_click_isolation",
+      "steps": [
+        "Click task checkbox → pane should NOT open",
+        "Click collapse arrow → pane should NOT open",
+        "Click task text → pane SHOULD open",
+        "Click task background (not text) → pane should NOT open"
+      ]
+    },
+    {
+      "test": "drag_functionality",
+      "steps": [
+        "Drag task by grip icon → should enable dragging",
+        "Double-click task box → should enable dragging",
+        "Try to drag task into its own child → should show error and snap back",
+        "Successfully drop task into valid location → verify task moves"
+      ]
+    },
+    {
+      "test": "ellipsis_menu",
+      "steps": [
+        "Click ellipsis icon → menu opens",
+        "Click 'Delete' → confirmation dialog appears",
+        "Click outside menu → menu closes",
+        "Open menu on bottom task → verify menu appears above icon"
+      ]
+    },
+    {
+      "test": "completed_section",
+      "steps": [
+        "Mark 3 tasks complete",
+        "Verify they disappear from main list",
+        "Verify 'Completed (3)' section appears at bottom",
+        "Click section header → verify tasks expand/collapse",
+        "Uncheck completed task → verify it returns to main list"
+      ]
+    },
+    {
+      "test": "sidebar_collapse_profile",
+      "steps": [
+        "Verify profile pic + 'Nested To-Do' text visible when expanded",
+        "Click bottom toggle → sidebar collapses",
+        "Verify only profile picture visible (no text)",
+        "Click toggle again → sidebar expands, text reappears"
+      ]
+    },
+    {
+      "test": "details_pane_close",
+      "steps": [
+        "Open details pane by clicking task",
+        "Press ESC → pane closes",
+        "Press ESC again → no error",
+        "Click 'Close' button → pane closes",
+        "Try to close already-closed pane → no error"
+      ]
+    },
+    {
+      "test": "responsive_desktop",
+      "steps": [
+        "Test at 1920x1080 → all 3 columns visible",
+        "Test at 1366x768 → all 3 columns visible, content scales",
+        "Test at 1200x800 → details pane hidden below 1200px",
+        "Test at 900x600 → minimum supported resolution"
+      ]
+    }
+  ],
+  "remarks": {
+    "drag_drop_implementation": "Use SortableJS library for drag/drop. Configure with group names, handle callbacks for onEnd event to update task parent_id and position via API.",
+    "ellipsis_menu_bootstrap": "Use Bootstrap's dropdown component. Add data-bs-toggle='dropdown' and aria-expanded attributes. Style dropdown-menu to match design.",
+    "completed_section_filtering": "Backend should support filtering: GET /api/tasks?filter=active and GET /api/tasks?filter=completed. Frontend separates rendering based on is_done value.",
+    "profile_picture_future": "Currently placeholder. Future enhancement: allow upload, integrate with user auth system.",
+    "esc_key_priority": "ESC key should close details pane first, then menus/modals. Implement event.stopPropagation() to prevent conflicts.",
+    "double_click_drag_ux": "Add visual feedback (outline or shadow) when double-click activates drag mode. Cursor should change to 'grabbing'.",
+    "localStorage_keys": "Use consistent naming: 'nestedTodo_sidebarCollapsed', 'nestedTodo_completedCollapsed' for state persistence."
+  }
+}

@@ -69,3 +69,29 @@ These features could be added later but are **not part of the CS50 submission**:
 - [ ] Animations and transitions
 - [ ] Custom icons and colors
 - [ ] Due dates and reminders
+
+# Bugs to fix
+- make a toggle button for the side bar allowing it to collapse and have that space take by the main middle section.
+- do not show the "add" lable up top just the plus icon is enough.
+- there is a problem where initialy few task item come with the tick checked and when unchecked the item rather gets striked through.
+- show the title of the list above the tasks. what ever task list might be open. even smart lists like "all task"
+- the design is not responsive on mobile.
+- and remove that connector like style
+- for each task the icon to add a sub task raather than the plus symbole, i need it to be a down arrow that turns left.
+- remove that lable above description box "description" and just have "Description" as placeholder in the box.
+- when ever a sub task is added and it its indentation is not consistant. it increases each time i do not want that i wnat it to be constant.
+---
+- the task indentention is still coumpounding.
+- the detail should show up when i click on the the task text only. (it should be visible even if i click the whole task box).
+- and actualy discard this whole idea of mobile view. this app is going to be viewed on borwser and no one uses borwser mobile todo list. so make sure its is just really responsive and scaled for all computer/laptop screens.
+- i want you to have a dragable icon to the far left beside down chevron. and also make the whole task dragable on double click of the task box. 
+- add a tripple dot icon with menu rather than the delete i con and when clicked on the three dot menu 'delete" option shows up and also unlocks posiblity to add further action for that task in future.
+- when i hover on subtask even the parent task option like add subtask icon and delete icon get visible.
+- also add the ability to add subtask from the details pane itself. with (plus icon, and add subtask at the bottom of the subtask list)
+- replac the "subtask" text in the details bar with just a hr. since its obious.
+- i wnat he sidebar collapes toggle button on the bottom of the screen.
+- there should be also a details collapes button at the borrom left of the detils pan. and when presses esc this details pan must close.
+- the current icon beside "nested to-do" should be replaced with the user profile picture (we have not added that functinality but just have the placeholder ther for now)
+- when the side bar is collaped only the profile picture must show not the name of the app.
+- add a compleated collapsable sectoin in the main section that list that shows the compleated task but the compleated task do not show up on the main list above.
+- remove the hr after the name of the list eg "all task"

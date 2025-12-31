@@ -2,26 +2,37 @@
 {% from "tasks.html" import render_task %}
 
 {% block content %}
-<div class="app-grid">
+<div class="app-grid" id="app-grid">
     
     {# ========== SIDEBAR ========== #}
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h4 class="mb-0">
-                <i class="fa-solid fa-tasks"></i>
-                Nested To-Do
-            </h4>
+            {# Profile picture + app name #}
+            <div class="sidebar-profile">
+                <img 
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233a6df0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-size='18' font-family='Arial'%3EU%3C/text%3E%3C/svg%3E"
+                    alt="User profile"
+                    class="profile-picture"
+                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%233a6df0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2218%22 font-family=%22Arial%22%3EU%3C/text%3E%3C/svg%3E'"
+                >
+                <span class="app-name sidebar-text">Nested To-Do</span>
+            </div>
         </div>
         <div class="sidebar-menu">
-            <button class="list-item active">
+            <button class="list-item active" data-list="all">
                 <i class="fa-solid fa-list"></i>
-                All Tasks
+                <span class="sidebar-text">All Tasks</span>
             </button>
         </div>
     </div>
     
     {# ========== TASK LIST ========== #}
-    <div class="task-list-pane">
+    <div class="task-list-pane" id="task-list-pane">
+        {# Current list title #}
+        <div class="list-title-header">
+            <h3 id="current-list-title">All Tasks</h3>
+        </div>
+        
         {# Add task form #}
         <div class="add-task-form">
             <form id="add-form" onsubmit="addTask(event)">
@@ -33,26 +44,53 @@
                         placeholder="Add a new task..."
                         required
                     >
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fa-solid fa-plus"></i> Add
+                    <button class="btn btn-primary" type="submit" title="Add task">
+                        <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
             </form>
         </div>
         
-        {# Task list #}
+        {# Active Task list #}
         <ul class="task-list" id="task-list">
-            {% if tasks %}
-                {% for task in tasks %}
+            {% set active_tasks = tasks | selectattr('is_done', 'equalto', 0) | list %}
+            {% if active_tasks %}
+                {% for task in active_tasks %}
                     {{ render_task(task) }}
                 {% endfor %}
             {% else %}
                 <li class="no-tasks">
                     <i class="fa-regular fa-circle-check"></i>
-                    <p>No tasks yet. Add one above!</p>
+                    <p>No active tasks. Add one above!</p>
                 </li>
             {% endif %}
         </ul>
+        
+        {# Completed Tasks Section #}
+        {% set completed_tasks = tasks | selectattr('is_done', 'equalto', 1) | list %}
+        {% if completed_tasks %}
+        <div class="completed-section" id="completed-section">
+            {# Section header with toggle #}
+            <button 
+                class="completed-section-header" 
+                onclick="toggleCompletedSection()"
+                aria-label="Toggle completed tasks"
+            >
+                <i class="fa-solid fa-chevron-right completed-section-arrow"></i>
+                <span class="completed-section-label">Completed</span>
+                <span class="completed-section-badge" id="completed-count">
+                    {{ completed_tasks|length }}
+                </span>
+            </button>
+            
+            {# Completed tasks list #}
+            <ul class="task-list completed-tasks-list" id="completed-tasks-list">
+                {% for task in completed_tasks %}
+                    {{ render_task(task) }}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
     
     {# ========== DETAIL PANE ========== #}
@@ -72,31 +110,269 @@
                 </h5>
             </div>
             
-            {# Description #}
+            {# Description - no label, placeholder only #}
             <div class="detail-description-section">
-                <label class="form-label">Description</label>
                 <textarea 
                     id="detail-description" 
                     class="form-control" 
                     rows="8" 
-                    placeholder="Add a description..."
+                    placeholder="Description"
                 ></textarea>
             </div>
             
-            {# Subtasks #}
+            {# Subtasks Section with Separator #}
             <div class="detail-subtasks-section">
-                <label class="form-label">Subtasks</label>
+                {# Horizontal rule separator instead of label #}
+                <hr class="detail-subtasks-separator">
                 <ul id="detail-subtasks" class="subtasks-list"></ul>
+                
+                {# Add Subtask Button #}
+                <button 
+                    id="add-subtask-details-btn"
+                    class="btn btn-outline-primary w-100 mt-3"
+                    onclick="addSubtaskFromDetails()"
+                    title="Add a new subtask"
+                >
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>Add Subtask</span>
+                </button>
             </div>
         </div>
     </div>
     
 </div>
 
+{# Fixed sidebar toggle button (bottom-left corner) #}
+<button 
+    id="sidebar-toggle-btn" 
+    class="sidebar-toggle-btn" 
+    onclick="toggleSidebar()" 
+    title="Toggle sidebar"
+    aria-label="Toggle sidebar"
+>
+    <i class="fa-solid fa-chevron-left"></i>
+</button>
+
 {# ========== JAVASCRIPT ========== #}
 <script>
 let selectedTaskId = null;
 let autoSaveTimer = null;
+let sidebarCollapsed = false;
+let sidebarAnimating = false;
+let completedCollapsed = true;
+let dragState = {
+    isDragging: false,
+    originalParent: null,
+    originalIndex: null,
+    draggedElement: null,
+    doubleClickMode: false
+};
+let sortableInstances = {};
+
+// ========== Initialize Sortable for all task lists ==========
+function initializeSortable() {
+    const mainList = document.getElementById('task-list');
+    if (mainList) {
+        initSortableList(mainList, null);
+    }
+    
+    const completedList = document.getElementById('completed-tasks-list');
+    if (completedList) {
+        initSortableList(completedList, null);
+    }
+    
+    document.querySelectorAll('.task-children').forEach(list => {
+        const parentRow = list.closest('.task-row');
+        const parentId = parentRow ? parseInt(parentRow.dataset.taskId) : null;
+        initSortableList(list, parentId);
+    });
+}
+
+function initSortableList(listElement, parentId) {
+    const listKey = parentId !== null ? `list-${parentId}` : 'main-list';
+    
+    if (sortableInstances[listKey]) {
+        sortableInstances[listKey].destroy();
+    }
+    
+    sortableInstances[listKey] = Sortable.create(listElement, {
+        group: 'tasks',
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'task-dragging',
+        dragClass: 'task-drag-active',
+        forceFallback: false,
+        
+        onMove: function(evt) {
+            const draggedItem = evt.dragged;
+            const targetList = evt.to;
+            const targetParentRow = targetList.closest('.task-row');
+            
+            const draggedTaskId = parseInt(draggedItem.dataset.taskId);
+            
+            let targetParentId = null;
+            if (targetList.id !== 'task-list' && targetList.id !== 'completed-tasks-list') {
+                targetParentId = targetParentRow ? parseInt(targetParentRow.dataset.taskId) : null;
+            }
+            
+            if (isTaskChildOf(draggedTaskId, targetParentId)) {
+                return false;
+            }
+            
+            return true;
+        },
+        
+        onEnd: function(evt) {
+            dragState.isDragging = false;
+            const draggedItem = evt.item;
+            const fromList = evt.from;
+            const toList = evt.to;
+            
+            const taskId = parseInt(draggedItem.dataset.taskId);
+            const newPosition = evt.newIndex;
+            
+            let newParentId = null;
+            if (toList.id !== 'task-list' && toList.id !== 'completed-tasks-list') {
+                const parentRow = toList.closest('.task-row');
+                newParentId = parentRow ? parseInt(parentRow.dataset.taskId) : null;
+            }
+            
+            if (isTaskChildOf(taskId, newParentId)) {
+                showInvalidDragError(draggedItem);
+                return;
+            }
+            
+            reorderTask(taskId, newParentId, newPosition, draggedItem, fromList);
+        }
+    });
+}
+
+// ========== Utility: Check if targetId is a child of taskId ==========
+function isTaskChildOf(parentTaskId, potentialChildId) {
+    if (potentialChildId === null) return false;
+    if (parentTaskId === potentialChildId) return true;
+    
+    const parentRow = document.querySelector(`[data-task-id="${potentialChildId}"]`);
+    if (!parentRow) return false;
+    
+    const childList = parentRow.querySelector('.task-children');
+    if (!childList) return false;
+    
+    const children = childList.querySelectorAll(':scope > .task-row');
+    for (let child of children) {
+        const childId = parseInt(child.dataset.taskId);
+        if (childId === parentTaskId || isTaskChildOf(parentTaskId, childId)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// ========== Show Invalid Drag Error ==========
+function showInvalidDragError(element) {
+    element.classList.add('task-invalid-drop');
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'drag-error-tooltip';
+    tooltip.textContent = 'Cannot move task here';
+    document.body.appendChild(tooltip);
+    
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = (rect.left + rect.width / 2 - 50) + 'px';
+    tooltip.style.top = (rect.top - 40) + 'px';
+    
+    setTimeout(() => {
+        element.classList.remove('task-invalid-drop');
+        tooltip.remove();
+        initializeSortable();
+    }, 2000);
+}
+
+// ========== Reorder Task via API ==========
+function reorderTask(taskId, newParentId, newPosition, draggedElement, fromList) {
+    fetch('/api/task/reorder', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            task_id: taskId,
+            new_parent_id: newParentId,
+            new_position: newPosition
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const newDepth = newParentId === null ? 0 : 
+                           (parseInt(document.querySelector(`[data-task-id="${newParentId}"]`).dataset.depth) + 1);
+            draggedElement.dataset.depth = newDepth;
+            
+            initializeSortable();
+        } else {
+            showInvalidDragError(draggedElement);
+        }
+    })
+    .catch(error => {
+        console.error('Error reordering task:', error);
+        showInvalidDragError(draggedElement);
+    });
+}
+
+// ========== Sidebar Toggle ==========
+function toggleSidebar() {
+    if (sidebarAnimating) {
+        return;
+    }
+    
+    sidebarAnimating = true;
+    const sidebar = document.getElementById('sidebar');
+    const appGrid = document.getElementById('app-grid');
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    const toggleIcon = toggleBtn.querySelector('i');
+    
+    sidebarCollapsed = !sidebarCollapsed;
+    
+    if (sidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        appGrid.classList.add('sidebar-collapsed');
+        toggleIcon.classList.remove('fa-chevron-left');
+        toggleIcon.classList.add('fa-chevron-right');
+        toggleBtn.setAttribute('title', 'Expand sidebar');
+    } else {
+        sidebar.classList.remove('collapsed');
+        appGrid.classList.remove('sidebar-collapsed');
+        toggleIcon.classList.remove('fa-chevron-right');
+        toggleIcon.classList.add('fa-chevron-left');
+        toggleBtn.setAttribute('title', 'Collapse sidebar');
+    }
+    
+    localStorage.setItem('nestedTodo_sidebarCollapsed', sidebarCollapsed);
+    
+    setTimeout(() => {
+        sidebarAnimating = false;
+    }, 300);
+}
+
+// ========== Toggle Completed Section ==========
+function toggleCompletedSection() {
+    const completedSection = document.getElementById('completed-section');
+    const completedList = document.getElementById('completed-tasks-list');
+    const arrow = document.querySelector('.completed-section-arrow');
+    
+    if (!completedSection) return;
+    
+    completedCollapsed = !completedCollapsed;
+    
+    if (completedCollapsed) {
+        completedList.classList.add('collapsed');
+        arrow.classList.add('collapsed');
+    } else {
+        completedList.classList.remove('collapsed');
+        arrow.classList.remove('collapsed');
+    }
+    
+    localStorage.setItem('nestedTodo_completedCollapsed', completedCollapsed);
+}
 
 // ========== Add Task ==========
 function addTask(event) {
@@ -112,7 +388,7 @@ function addTask(event) {
         body: JSON.stringify({title: title})
     })
     .then(response => response.json())
-    .then(data => {
+    .then (data => {
         if (data.success) {
             location.reload();
         }
@@ -120,28 +396,22 @@ function addTask(event) {
     .catch(error => console.error('Error adding task:', error));
 }
 
-// ========== Select Task ==========
+// ========== Select Task (Details Pane Trigger) ==========
 function selectTask(taskId) {
     selectedTaskId = taskId;
     
     fetch(`/api/task/${taskId}`)
         .then(response => response.json())
         .then(task => {
-            // Hide no-selection, show detail view
             document.getElementById('no-selection').classList.add('d-none');
             document.getElementById('task-detail').classList.remove('d-none');
             
-            // Update title
             document.getElementById('detail-title').textContent = task.title;
             
-            // Update description
             const descTextarea = document.getElementById('detail-description');
             descTextarea.value = task.description || '';
             
-            // Remove previous event listener
             descTextarea.onkeyup = null;
-            
-            // Add auto-save for description
             descTextarea.onkeyup = function() {
                 clearTimeout(autoSaveTimer);
                 autoSaveTimer = setTimeout(() => {
@@ -154,7 +424,6 @@ function selectTask(taskId) {
                 }, 1000);
             };
             
-            // Update subtasks list
             const subtasksList = document.getElementById('detail-subtasks');
             subtasksList.innerHTML = '';
             
@@ -177,7 +446,6 @@ function selectTask(taskId) {
                 subtasksList.innerHTML = '<li class="no-subtasks">No subtasks yet</li>';
             }
             
-            // Highlight selected task in list
             document.querySelectorAll('.task-row').forEach(row => {
                 row.classList.toggle('task-selected', parseInt(row.dataset.taskId) === taskId);
             });
@@ -224,7 +492,7 @@ function enableTitleEdit() {
     };
 }
 
-// ========== Toggle Done ==========
+// ========== Toggle Task Done ==========
 function toggleTaskDone(taskId) {
     fetch(`/api/task/${taskId}/toggle`, {
         method: 'POST'
@@ -232,14 +500,13 @@ function toggleTaskDone(taskId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Refresh the page to show updated state
             location.reload();
         }
     })
     .catch(error => console.error('Error toggling task:', error));
 }
 
-// ========== Add Subtask ==========
+// ========== Add Subtask (from task list) ==========
 function promptAddSubtask(parentId) {
     const title = prompt('Enter subtask name:');
     if (!title || !title.trim()) return;
@@ -261,10 +528,62 @@ function promptAddSubtask(parentId) {
     .catch(error => console.error('Error adding subtask:', error));
 }
 
-// ========== Delete Task ==========
-function deleteTask(taskId) {
+// ========== Add Subtask from Details Pane ==========
+function addSubtaskFromDetails() {
+    if (!selectedTaskId) {
+        alert('Please select a task first');
+        return;
+    }
+    
+    const title = prompt('Enter subtask name:');
+    if (!title || !title.trim()) return;
+    
+    fetch('/api/task/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            title: title.trim(),
+            parent_id: selectedTaskId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            selectTask(selectedTaskId);
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Error adding subtask:', error));
+}
+
+// ========== Toggle Subtask Collapse ==========
+function toggleSubtasks(taskId) {
+    const taskRow = document.querySelector(`[data-task-id="${taskId}"]`);
+    const childrenContainer = taskRow.querySelector('.task-children');
+    const arrowIcon = taskRow.querySelector('.collapse-arrow');
+    
+    if (!childrenContainer) return;
+    
+    const isCollapsed = childrenContainer.classList.contains('collapsed');
+    
+    if (isCollapsed) {
+        childrenContainer.classList.remove('collapsed');
+        arrowIcon.classList.remove('collapsed');
+    } else {
+        childrenContainer.classList.add('collapsed');
+        arrowIcon.classList.add('collapsed');
+    }
+}
+
+// ========== Delete Task with Confirmation ==========
+function deleteTaskWithConfirm(taskId) {
     if (!confirm('Delete this task and all its subtasks?')) return;
     
+    deleteTask(taskId);
+}
+
+// ========== Delete Task ==========
+function deleteTask(taskId) {
     fetch(`/api/task/${taskId}/delete`, {
         method: 'POST'
     })
@@ -277,20 +596,155 @@ function deleteTask(taskId) {
     .catch(error => console.error('Error deleting task:', error));
 }
 
-// ========== Hover Effects ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const taskRows = document.querySelectorAll('.task-row');
+// ========== Close Details Pane ==========
+function closeDetailsPane() {
+    const noSelection = document.getElementById('no-selection');
+    const taskDetail = document.getElementById('task-detail');
     
-    taskRows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            const actions = this.querySelector('.task-actions');
-            if (actions) actions.style.opacity = '1';
-        });
+    noSelection.classList.add('d-none');
+    taskDetail.classList.add('d-none');
+    selectedTaskId = null;
+}
+
+// ========== Ellipsis Menu - Collision Detection ==========
+function initializeMenuCollisionDetection() {
+    document.addEventListener('show.bs.dropdown', function(e) {
+        const button = e.relatedTarget;
+        const menu = button.nextElementSibling;
         
-        row.addEventListener('mouseleave', function() {
-            const actions = this.querySelector('.task-actions');
-            if (actions) actions.style.opacity = '0';
-        });
+        if (!menu || !menu.classList.contains('dropdown-menu')) {
+            return;
+        }
+        
+        setTimeout(() => {
+            const buttonRect = button.getBoundingClientRect();
+            const menuRect = menu.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            const menuBottom = menuRect.bottom;
+            const spaceBelow = viewportHeight - buttonRect.top;
+            const spaceAbove = buttonRect.top;
+            
+            if (menuBottom > viewportHeight && spaceAbove > spaceBelow) {
+                menu.classList.add('dropdown-menu-up');
+            } else {
+                menu.classList.remove('dropdown-menu-up');
+            }
+        }, 10);
+    });
+}
+
+// ========== Close Dropdowns on ESC ==========
+function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        const button = menu.previousElementSibling;
+        if (button) {
+            const dropdown = bootstrap.Dropdown.getInstance(button);
+            if (dropdown) {
+                dropdown.hide();
+            }
+        }
+    });
+}
+
+// ========== Double-click to Enable Drag Mode ==========
+function enableDoubleClickDrag() {
+    document.addEventListener('dblclick', function(e) {
+        const taskContent = e.target.closest('.task-content');
+        if (!taskContent) return;
+        
+        if (e.target.closest('.task-checkbox, .collapse-arrow, .action-btn, .task-title, .dropdown-menu')) {
+            return;
+        }
+        
+        const taskRow = taskContent.closest('.task-row');
+        if (!taskRow) return;
+        
+        dragState.doubleClickMode = true;
+        dragState.draggedElement = taskRow;
+        
+        taskRow.classList.add('task-double-click-drag');
+        
+        setTimeout(() => {
+            taskRow.classList.remove('task-double-click-drag');
+            dragState.doubleClickMode = false;
+        }, 300);
+    });
+}
+
+// ========== Event Delegation & Initialization ==========
+document.addEventListener('DOMContentLoaded', function() {
+    // Restore sidebar state
+    const sidebarState = localStorage.getItem('nestedTodo_sidebarCollapsed') === 'true';
+    if (sidebarState) {
+        sidebarCollapsed = true;
+        const sidebar = document.getElementById('sidebar');
+        const appGrid = document.getElementById('app-grid');
+        const toggleBtn = document.getElementById('sidebar-toggle-btn');
+        const toggleIcon = toggleBtn.querySelector('i');
+        
+        sidebar.classList.add('collapsed');
+        appGrid.classList.add('sidebar-collapsed');
+        toggleIcon.classList.remove('fa-chevron-left');
+        toggleIcon.classList.add('fa-chevron-right');
+        toggleBtn.setAttribute('title', 'Expand sidebar');
+    }
+    
+    // Restore completed section state
+    const completedState = localStorage.getItem('nestedTodo_completedCollapsed');
+    if (completedState === 'false') {
+        completedCollapsed = false;
+        const completedList = document.getElementById('completed-tasks-list');
+        const arrow = document.querySelector('.completed-section-arrow');
+        if (completedList && arrow) {
+            completedList.classList.remove('collapsed');
+            arrow.classList.remove('collapsed');
+        }
+    } else {
+        // Default collapsed state
+        completedCollapsed = true;
+    }
+    
+    // Initialize drag-and-drop
+    initializeSortable();
+    enableDoubleClickDrag();
+    initializeMenuCollisionDetection();
+    
+    // Prevent details pane from opening on checkbox/button clicks
+    document.addEventListener('click', function(e) {
+        const clickTarget = e.target;
+        
+        if (clickTarget.closest('.task-checkbox, .collapse-arrow, .drag-handle, .action-btn, .dropdown-menu')) {
+            return;
+        }
+        
+        const taskTitle = clickTarget.closest('.task-title');
+        if (taskTitle) {
+            const taskRow = taskTitle.closest('.task-row');
+            if (taskRow) {
+                const taskId = parseInt(taskRow.dataset.taskId);
+                selectTask(taskId);
+            }
+        }
+    });
+    
+    // ESC key closes details pane and dropdowns (details pane priority)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const noSelection = document.getElementById('no-selection');
+            const taskDetail = document.getElementById('task-detail');
+            
+            // Close details pane first if it's open
+            if (!noSelection.classList.contains('d-none')) {
+                noSelection.classList.add('d-none');
+                taskDetail.classList.add('d-none');
+                selectedTaskId = null;
+                e.stopPropagation();
+            } else {
+                // Otherwise close dropdowns
+                closeAllDropdowns();
+            }
+        }
     });
 });
 </script>

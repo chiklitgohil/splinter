@@ -2,10 +2,11 @@
 :root {
     --primary-color: #3a6df0;
     --sidebar-width: 250px;
+    --sidebar-collapsed-width: 60px;
     --border-color: #dee2e6;
     --hover-bg: #f8f9fa;
     --done-color: #999;
-    --indent-width: 1.5rem;
+    --indent-width: 2rem;
 }
 
 * {
@@ -26,6 +27,12 @@ body {
     grid-template-columns: var(--sidebar-width) 1fr 1fr;
     min-height: 100vh;
     gap: 0;
+    transition: grid-template-columns 0.3s ease;
+}
+
+/* Collapsed sidebar state */
+.app-grid.sidebar-collapsed {
+    grid-template-columns: var(--sidebar-collapsed-width) 1.5fr 1fr;
 }
 
 /* ========== Sidebar ========== */
@@ -33,15 +40,51 @@ body {
     background: #fff;
     border-right: 1px solid var(--border-color);
     padding: 1.5rem 1rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+    padding: 1.5rem 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-text {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-profile {
+    justify-content: center;
 }
 
 .sidebar-header {
     margin-bottom: 2rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 }
 
-.sidebar-header h4 {
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.profile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.app-name {
     color: var(--primary-color);
     font-weight: 600;
+    white-space: nowrap;
+    font-size: 1rem;
 }
 
 .sidebar-menu .list-item {
@@ -54,6 +97,10 @@ body {
     cursor: pointer;
     transition: background 0.2s;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
 }
 
 .sidebar-menu .list-item:hover {
@@ -66,8 +113,43 @@ body {
 }
 
 .sidebar-menu .list-item i {
-    margin-right: 0.5rem;
     width: 20px;
+    flex-shrink: 0;
+}
+
+/* ========== Sidebar Toggle Button - Fixed Bottom Left ========== */
+.sidebar-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: white;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-toggle-btn:hover {
+    background: var(--hover-bg);
+    color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+.sidebar-toggle-btn i {
+    transition: transform 0.3s ease;
 }
 
 /* ========== Task List Pane ========== */
@@ -77,6 +159,19 @@ body {
     padding: 1.5rem;
     overflow-y: auto;
     max-height: 100vh;
+}
+
+/* List title header - FIXED: removed border-bottom */
+.list-title-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+}
+
+.list-title-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
 }
 
 .add-task-form {
@@ -100,6 +195,7 @@ body {
 
 .add-task-form button {
     border: none;
+    padding: 0.75rem 1rem;
 }
 
 /* ========== Task List ========== */
@@ -110,8 +206,52 @@ body {
 
 .task-row {
     position: relative;
-    margin-left: calc(var(--depth) * var(--indent-width));
     margin-bottom: 0.5rem;
+}
+
+/* FIXED: Consistent indentation using data-depth attribute - depth * 2rem */
+.task-row[data-depth="0"] {
+    margin-left: 0;
+}
+
+.task-row[data-depth="1"] {
+    margin-left: calc(1 * var(--indent-width));
+}
+
+.task-row[data-depth="2"] {
+    margin-left: calc(2 * var(--indent-width));
+}
+
+.task-row[data-depth="3"] {
+    margin-left: calc(3 * var(--indent-width));
+}
+
+.task-row[data-depth="4"] {
+    margin-left: calc(4 * var(--indent-width));
+}
+
+.task-row[data-depth="5"] {
+    margin-left: calc(5 * var(--indent-width));
+}
+
+.task-row[data-depth="6"] {
+    margin-left: calc(6 * var(--indent-width));
+}
+
+.task-row[data-depth="7"] {
+    margin-left: calc(7 * var(--indent-width));
+}
+
+.task-row[data-depth="8"] {
+    margin-left: calc(8 * var(--indent-width));
+}
+
+.task-row[data-depth="9"] {
+    margin-left: calc(9 * var(--indent-width));
+}
+
+.task-row[data-depth="10"] {
+    margin-left: calc(10 * var(--indent-width));
 }
 
 .task-content {
@@ -136,59 +276,233 @@ body {
     flex: 1;
 }
 
+/* DRAG HANDLE - leftmost element */
+.drag-handle {
+    background: none;
+    border: none;
+    cursor: grab;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.drag-handle:hover {
+    color: var(--primary-color);
+    cursor: grab;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.drag-handle i {
+    font-size: 16px;
+}
+
+/* Collapse arrow button */
+.collapse-arrow {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.collapse-arrow:hover {
+    color: var(--primary-color);
+}
+
+.collapse-arrow.collapsed {
+    transform: rotate(-90deg);
+}
+
+.collapse-arrow-spacer {
+    width: 20px;
+    flex-shrink: 0;
+}
+
 .task-checkbox {
     cursor: pointer;
     width: 18px;
     height: 18px;
+    flex-shrink: 0;
+    accent-color: var(--primary-color);
 }
 
+/* TASK TITLE - clickable for details pane only */
 .task-title {
     cursor: pointer;
     flex: 1;
     user-select: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s;
 }
 
 .task-title:hover {
     color: var(--primary-color);
+    background: rgba(58, 109, 240, 0.05);
 }
 
-.task-done {
+.task-title:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Apply strikethrough only when task is done */
+.task-title.task-done {
     text-decoration: line-through;
     color: var(--done-color);
 }
 
-/* Task actions (hidden by default) */
+/* Task actions container */
 .task-actions {
     display: flex;
-    gap: 0.25rem;
+    gap: 0.5rem;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s ease;
 }
 
-.task-row:hover .task-actions {
+/* FIXED: Root tasks (depth 0) always show actions; subtasks show on hover */
+.task-row[data-depth="0"] .task-actions {
     opacity: 1;
 }
 
-.task-actions button {
+.task-row[data-depth]:not([data-depth="0"]) .task-actions {
+    opacity: 0;
+}
+
+.task-row[data-depth]:not([data-depth="0"]):hover .task-actions {
+    opacity: 1;
+}
+
+/* Action button styling */
+.action-btn {
     padding: 0.25rem 0.5rem;
     font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+.add-subtask-btn {
+    color: #0d6efd;
+}
+
+.add-subtask-btn:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    border-color: #0d6efd;
+}
+
+/* ========== Ellipsis Menu Styles ========== */
+
+.task-ellipsis-group {
+    position: relative;
+}
+
+.ellipsis-btn {
+    color: #666;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 12px;
+    min-width: auto;
+}
+
+.ellipsis-btn:hover {
+    color: var(--primary-color);
+    background-color: rgba(58, 109, 240, 0.1);
+    border-color: var(--primary-color);
+}
+
+.ellipsis-btn[aria-expanded="true"] {
+    color: var(--primary-color);
+    background-color: rgba(58, 109, 240, 0.1);
+}
+
+/* Task dropdown menu styling */
+.task-dropdown-menu {
+    min-width: 140px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 0.25rem;
+}
+
+.task-dropdown-menu .dropdown-item {
+    padding: 0.5rem 1rem;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    color: #333;
+}
+
+.task-dropdown-menu .dropdown-item i {
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.task-dropdown-menu .dropdown-item:hover:not(.disabled) {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.task-dropdown-menu .delete-menu-item {
+    color: #dc3545;
+}
+
+.task-dropdown-menu .delete-menu-item:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #c82333;
+}
+
+.task-dropdown-menu .dropdown-item.disabled {
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.task-dropdown-menu .dropdown-item.disabled:hover {
+    background-color: transparent;
+    color: #999;
+}
+
+.task-dropdown-menu .dropdown-divider {
+    margin: 0.25rem 0;
+}
+
+/* Collision detection - menu appears above button */
+.task-ellipsis-group .dropdown-menu.dropdown-menu-up {
+    top: auto;
+    bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
 }
 
 /* Selected task highlight */
 .task-selected > .task-content {
     background: rgba(58, 109, 240, 0.1);
     border-left: 3px solid var(--primary-color);
-}
-
-/* Connector lines for nested tasks */
-.connector-line {
-    position: absolute;
-    top: 0;
-    left: calc(var(--depth) * var(--indent-width) - 10px);
-    width: 2px;
-    height: 100%;
-    background: var(--border-color);
-    z-index: 0;
+    padding-left: calc(1rem - 3px);
 }
 
 /* Task children (recursive nesting) */
@@ -196,6 +510,15 @@ body {
     list-style: none;
     padding: 0;
     margin-top: 0.5rem;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+/* Collapsed children */
+.task-children.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
 }
 
 /* No tasks message */
@@ -209,6 +532,115 @@ body {
     font-size: 3rem;
     margin-bottom: 1rem;
     opacity: 0.3;
+}
+
+/* ========== Completed Tasks Section ========== */
+
+.completed-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.completed-section-header {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    text-align: left;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.completed-section-header:hover {
+    background: var(--hover-bg);
+    color: #333;
+}
+
+.completed-section-arrow {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+    font-size: 12px;
+}
+
+.completed-section-arrow.collapsed {
+    transform: rotate(-90deg);
+}
+
+.completed-section-label {
+    flex: 1;
+}
+
+.completed-section-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.5rem;
+    background: #e9ecef;
+    color: #666;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.completed-tasks-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+/* Collapsed completed tasks */
+.completed-tasks-list.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+}
+
+/* Muted styling for completed tasks */
+.completed-tasks-list .task-content {
+    opacity: 0.7;
+    background: #fafbfc;
+}
+
+.completed-tasks-list .task-content:hover {
+    background: #f0f2f5;
+}
+
+.completed-tasks-list .task-title {
+    color: #999;
+}
+
+.completed-tasks-list .task-title.task-done {
+    color: #999;
+    text-decoration: line-through;
+}
+
+.completed-tasks-list .task-title:hover {
+    color: #666;
+    background: rgba(100, 100, 100, 0.05);
+}
+
+.completed-tasks-list .drag-handle {
+    color: #ccc;
+}
+
+.completed-tasks-list .drag-handle:hover {
+    color: #999;
 }
 
 /* ========== Detail Pane ========== */
@@ -269,14 +701,26 @@ body {
     font-size: 14px;
 }
 
+.detail-subtasks-section {
+    position: relative;
+}
+
 .detail-subtasks-section label {
     font-weight: 600;
     margin-bottom: 1rem;
 }
 
+/* Details pane subtask separator (horizontal rule) */
+.detail-subtasks-separator {
+    margin: 1.5rem 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+}
+
 .subtasks-list {
     list-style: none;
     padding: 0;
+    margin-bottom: 1rem;
 }
 
 .subtasks-list li {
@@ -305,32 +749,209 @@ body {
 .no-subtasks {
     color: #999;
     font-style: italic;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+/* Add Subtask from Details Button */
+#add-subtask-details-btn {
+    display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem !important;
+    font-size: 13px;
+    color: #0d6efd;
+    border-color: #0d6efd;
+    transition: all 0.2s;
+}
+
+#add-subtask-details-btn:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+#add-subtask-details-btn:active {
+    transform: scale(0.98);
+}
+
+#add-subtask-details-btn i {
+    font-size: 14px;
+}
+
+/* ========== Drag & Drop Styles ========== */
+
+/* Task being dragged */
+.task-dragging {
+    opacity: 0.5;
+    background: rgba(58, 109, 240, 0.1);
+}
+
+/* Task drag active state */
+.task-drag-active {
+    opacity: 0.7;
+}
+
+/* Invalid drop target */
+.task-invalid-drop {
+    outline: 2px solid #dc3545;
+    outline-offset: 2px;
+}
+
+/* Double-click drag visual feedback */
+.task-double-click-drag {
+    box-shadow: 0 4px 12px rgba(58, 109, 240, 0.3);
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+/* Drag error tooltip */
+.drag-error-tooltip {
+    position: fixed;
+    background: #dc3545;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Sortable ghost (placeholder) styling */
+.sortable-ghost {
+    opacity: 0.4;
+    background: #e9ecef;
+    border-radius: 8px;
 }
 
 /* ========== Responsive Design ========== */
-@media (max-width: 900px) {
+
+/* Large Desktop: >1600px */
+@media (min-width: 1601px) {
+    .app-grid {
+        grid-template-columns: 300px 1.5fr 1fr;
+    }
+    
+    .app-grid.sidebar-collapsed {
+        grid-template-columns: var(--sidebar-collapsed-width) 1.5fr 1fr;
+    }
+}
+
+/* Standard Desktop: 1200px - 1600px */
+@media (min-width: 1200px) and (max-width: 1600px) {
+    .app-grid {
+        grid-template-columns: 250px 1fr 1fr;
+    }
+    
+    .app-grid.sidebar-collapsed {
+        grid-template-columns: var(--sidebar-collapsed-width) 1fr 1fr;
+    }
+}
+
+/* Small Desktop: 900px - 1199px (hide details pane) */
+@media (min-width: 900px) and (max-width: 1199px) {
+    :root {
+        --sidebar-width: 200px;
+    }
+    
+    .app-grid {
+        grid-template-columns: var(--sidebar-width) 1fr;
+    }
+    
+    .app-grid.sidebar-collapsed {
+        grid-template-columns: var(--sidebar-collapsed-width) 1fr;
+    }
+    
+    .detail-pane {
+        display: none;
+    }
+}
+
+/* Below minimum desktop width: <900px (show warning) */
+@media (max-width: 899px) {
     .app-grid {
         grid-template-columns: 1fr;
     }
     
-    .sidebar,
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
     .detail-pane {
         display: none;
     }
     
     .task-list-pane {
         border-right: none;
+        padding: 1rem;
+    }
+    
+    .list-title-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    /* Larger touch targets on mobile */
+    .task-checkbox {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .collapse-arrow {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .task-content {
+        padding: 1rem;
+    }
+    
+    .task-actions button {
+        padding: 0.5rem 0.75rem;
+        font-size: 14px;
+    }
+    
+    /* Reduce indentation on mobile */
+    :root {
+        --indent-width: 1rem;
     }
 }
 
-@media (min-width: 901px) and (max-width: 1200px) {
-    .app-grid {
-        grid-template-columns: var(--sidebar-width) 1fr;
+/* Very small devices */
+@media (max-width: 480px) {
+    .add-task-form button {
+        padding: 0.75rem;
     }
     
-    .detail-pane {
-        display: none;
+    .add-task-form button i {
+        margin: 0;
+    }
+    
+    :root {
+        --indent-width: 0.75rem;
     }
 }
 
@@ -338,11 +959,41 @@ body {
 @media print {
     .sidebar,
     .task-actions,
-    .add-task-form {
+    .add-task-form,
+    .collapse-arrow,
+    .sidebar-toggle-btn {
         display: none;
+    }
+    
+    .app-grid {
+        grid-template-columns: 1fr;
     }
     
     .task-list-pane {
         border: none;
     }
+    
+    .task-content {
+        background: white;
+        box-shadow: none;
+    }
 }
+
+/* ========== Details Pane Close Button ========== */
+.detail-pane-close-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    padding: 0.5rem 0.75rem;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.detail-pane-close-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
