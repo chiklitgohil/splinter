@@ -28,6 +28,7 @@ async function refreshAll() {
         if (typeof renderDetailView === 'function') renderDetailView();
         
         updateMobileTopBar();
+        refreshIcons();
     } catch (error) {
         console.error("Failed to load tasks:", error);
         alert("Failed to load tasks. Please check the console.");
@@ -109,3 +110,10 @@ function setupMobileNavigation() {
         }
     });
 }
+
+function refreshIcons() {
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+window.refreshIcons = refreshIcons;

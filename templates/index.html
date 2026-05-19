@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nested Todo</title>
+    <title>Splinter - Nested Todo</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <header class="top-bar">
-        <button id="menu-toggle" class="icon-btn mobile-only" aria-label="Toggle Menu">☰</button>
-        <button id="back-btn" class="icon-btn mobile-only hidden" aria-label="Back">←</button>
-        <h1 id="current-list-title">All Tasks</h1>
+        <button id="menu-toggle" class="icon-btn mobile-only" aria-label="Toggle Menu"><i data-lucide="menu"></i></button>
+        <button id="back-btn" class="icon-btn mobile-only hidden" aria-label="Back"><i data-lucide="arrow-left"></i></button>
+        <h1>Splinter</h1>
     </header>
 
     <div class="app-container" id="app-container">
@@ -40,6 +41,9 @@
 
         <!-- Task List Panel -->
         <main class="panel" id="task-list">
+            <div class="task-list-header">
+                <h2 id="current-list-title">All Tasks</h2>
+            </div>
             <div id="root-tasks-container">
                 <!-- Tasks injected here -->
             </div>
@@ -90,6 +94,13 @@
                 </div>
             </div>
         </aside>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu hidden">
+        <button id="ctx-delete-btn" class="ctx-btn text-danger">
+            <i data-lucide="trash-2"></i> Delete Task
+        </button>
     </div>
 
     <!-- Scripts loaded in specific order -->

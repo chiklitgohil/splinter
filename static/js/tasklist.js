@@ -1,5 +1,5 @@
 // tasklist.js
-
+window.collapsedTasks = window.collapsedTasks || new Set();
 function renderTaskList() {
     const container = document.getElementById('root-tasks-container');
     if (!container) return;
@@ -34,13 +34,24 @@ function renderTaskList() {
     // Sort by position
     rootTasks.sort((a, b) => a.position - b.position);
     
-    // Render each root task and its descendants recursively
-    rootTasks.forEach(task => {
-        const node = renderTaskNode(task.id, 0);
-        if (node) container.appendChild(node);
-    });
+    if (rootTasks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="check-circle" style="width: 48px; height: 48px; opacity: 0.2; margin-bottom: 1rem;"></i>
+                <h3>All caught up!</h3>
+                <p>Enjoy your day or add a new task below.</p>
+            </div>
+        `;
+    } else {
+        // Render each root task and its descendants recursively
+        rootTasks.forEach(task => {
+            const node = renderTaskNode(task.id, 0);
+            if (node) container.appendChild(node);
+        });
+    }
 
     setupTaskListEventListeners();
+    if (window.refreshIcons) window.refreshIcons();
 }
 
 function renderTaskNode(taskId, depth) {
@@ -55,6 +66,53 @@ function renderTaskNode(taskId, depth) {
     row.className = 'task-row' + (task.status === 'done' ? ' done' : '') + (window.selectedTaskId === taskId ? ' selected' : '');
     // Indent left side. 1rem = 16px
     row.style.paddingLeft = `calc(var(--spacing-md) + ${depth}rem)`;
+    
+    // Context Menu Right Click
+    row.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        window.contextMenuTaskId = taskId;
+        const menu = document.getElementById('context-menu');
+        menu.classList.remove('hidden');
+        menu.style.left = `${e.pageX}px`;
+        menu.style.top = `${e.pageY}px`;
+        
+        const closeMenu = () => {
+            menu.classList.add('hidden');
+            document.removeEventListener('click', closeMenu);
+            document.removeEventListener('scroll', closeMenu, true);
+        };
+        setTimeout(() => {
+            document.addEventListener('click', closeMenu);
+            document.addEventListener('scroll', closeMenu, true);
+        }, 10);
+    });
+    
+    const children = Object.values(window.store).filter(t => t.parent_id === taskId);
+    children.sort((a, b) => a.position - b.position);
+
+    // Chevron if has children
+    if (children.length > 0) {
+        const chevron = document.createElement('div');
+        chevron.className = 'task-chevron' + (window.collapsedTasks.has(taskId) ? ' collapsed' : '');
+        chevron.innerHTML = '<i data-lucide="chevron-down"></i>';
+        chevron.onclick = (e) => {
+            e.stopPropagation();
+            if (window.collapsedTasks.has(taskId)) {
+                window.collapsedTasks.delete(taskId);
+            } else {
+                window.collapsedTasks.add(taskId);
+            }
+            if (typeof renderTaskList === 'function') renderTaskList();
+        };
+        row.appendChild(chevron);
+    } else {
+        // Spacer for alignment
+        const spacer = document.createElement('div');
+        spacer.style.width = '1.5rem';
+        spacer.style.height = '1.5rem';
+        spacer.style.flexShrink = '0';
+        row.appendChild(spacer);
+    }
     
     // Checkbox
     const checkbox = document.createElement('input');
@@ -92,7 +150,7 @@ function renderTaskNode(taskId, depth) {
     // AI Button
     const aiBtn = document.createElement('button');
     aiBtn.className = 'ai-btn';
-    aiBtn.textContent = '✦';
+    aiBtn.innerHTML = '<i data-lucide="sparkles"></i>';
     aiBtn.title = 'Breakdown task with AI';
     aiBtn.onclick = (e) => {
         e.stopPropagation();
@@ -102,7 +160,7 @@ function renderTaskNode(taskId, depth) {
     // Add subtask inline button
     const addSubBtn = document.createElement('button');
     addSubBtn.className = 'add-subtask-btn';
-    addSubBtn.textContent = '+';
+    addSubBtn.innerHTML = '<i data-lucide="plus"></i>';
     addSubBtn.title = 'Add subtask';
     addSubBtn.onclick = (e) => {
         e.stopPropagation();
@@ -122,8 +180,9 @@ function renderTaskNode(taskId, depth) {
     childrenContainer.className = 'children-container';
     childrenContainer.id = `children-${taskId}`;
     
-    const children = Object.values(window.store).filter(t => t.parent_id === taskId);
-    children.sort((a, b) => a.position - b.position);
+    if (window.collapsedTasks.has(taskId)) {
+        childrenContainer.classList.add('hidden');
+    }
     
     children.forEach(child => {
         const childNode = renderTaskNode(child.id, depth + 1);
@@ -339,6 +398,27 @@ function setupTaskListEventListeners() {
     }
     
     taskListEventsAttached = true;
+    
+    // Setup Context Menu Global Delete Action
+    const deleteBtn = document.getElementById('ctx-delete-btn');
+    if (deleteBtn && !deleteBtn.dataset.bound) {
+        deleteBtn.dataset.bound = "true";
+        deleteBtn.addEventListener('click', async () => {
+            if (window.contextMenuTaskId) {
+                try {
+                    await API.deleteTask(window.contextMenuTaskId);
+                    delete window.store[window.contextMenuTaskId];
+                    if (window.selectedTaskId === window.contextMenuTaskId) {
+                        window.selectedTaskId = null;
+                        if (typeof renderDetailView === 'function') renderDetailView();
+                    }
+                    if (typeof refreshAll === 'function') refreshAll();
+                } catch(e) {
+                    console.error("Failed to delete", e);
+                }
+            }
+        });
+    }
 }
 
 function escapeHTML(str) {

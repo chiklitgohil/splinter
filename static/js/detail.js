@@ -51,6 +51,7 @@ function renderDetailView() {
     renderDirectSubtasks(task.id);
     
     setupDetailEventListeners(task.id);
+    if (window.refreshIcons) window.refreshIcons();
 }
 
 function renderLabels(task) {
@@ -67,7 +68,7 @@ function renderLabels(task) {
         
         const removeBtn = document.createElement('span');
         removeBtn.className = 'remove-label';
-        removeBtn.textContent = '×';
+        removeBtn.innerHTML = '<i data-lucide="x" style="width: 14px; height: 14px;"></i>';
         removeBtn.onclick = async () => {
             const newLabels = labels.filter(l => l !== label);
             await updateDetailField('labels', newLabels);
