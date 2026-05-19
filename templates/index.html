@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nested Todo</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="top-bar">
+        <button id="menu-toggle" class="icon-btn mobile-only" aria-label="Toggle Menu">☰</button>
+        <button id="back-btn" class="icon-btn mobile-only hidden" aria-label="Back">←</button>
+        <h1 id="current-list-title">All Tasks</h1>
+    </header>
+
+    <div class="app-container" id="app-container">
+        <!-- Sidebar Panel -->
+        <aside class="panel" id="sidebar">
+            <nav>
+                <div class="sidebar-section">
+                    <h2>Smart Lists</h2>
+                    <ul id="smart-lists" class="list-group">
+                        <li data-id="all" class="list-item active">All Tasks</li>
+                        <li data-id="today" class="list-item">Today</li>
+                        <li data-id="upcoming" class="list-item">Upcoming</li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h2>My Lists</h2>
+                    <ul id="user-lists" class="list-group">
+                        <!-- User lists injected here -->
+                    </ul>
+                    <div class="add-list-container">
+                        <button id="add-list-btn" class="btn text-btn">+ New list</button>
+                        <input type="text" id="add-list-input" class="hidden" placeholder="List name (Enter to save)">
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Task List Panel -->
+        <main class="panel" id="task-list">
+            <div id="root-tasks-container">
+                <!-- Tasks injected here -->
+            </div>
+            <div class="add-task-container">
+                <input type="text" id="add-root-task-input" class="task-input" placeholder="Add a new task... (Enter to save)">
+            </div>
+        </main>
+
+        <!-- Detail View Panel -->
+        <aside class="panel" id="detail-view">
+            <div id="detail-placeholder" class="detail-placeholder">
+                <p>Select a task to view details.</p>
+            </div>
+            <div id="detail-content" class="detail-content hidden">
+                <div class="detail-header">
+                    <input type="text" id="detail-title" class="detail-title-input" placeholder="Task title">
+                    <button id="detail-status-btn" class="btn outline-btn">Mark done</button>
+                </div>
+                
+                <div class="detail-form">
+                    <div class="form-group">
+                        <label for="detail-due-date">Due Date</label>
+                        <input type="date" id="detail-due-date" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Labels</label>
+                        <div class="labels-container" id="detail-labels-container">
+                            <!-- Labels injected here -->
+                        </div>
+                        <input type="text" id="detail-add-label" class="form-control" placeholder="Add label (Enter to save)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="detail-notes">Notes</label>
+                        <textarea id="detail-notes" class="form-control notes-textarea" placeholder="Add details..."></textarea>
+                    </div>
+                    
+                    <div class="form-group subtasks-group">
+                        <label>Subtasks</label>
+                        <div id="detail-subtasks-container" class="detail-subtasks">
+                            <!-- Direct subtasks injected here -->
+                        </div>
+                        <div class="add-subtask-container">
+                            <input type="text" id="detail-add-subtask" class="form-control" placeholder="Add a subtask (Enter to save)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Scripts loaded in specific order -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/tasklist.js"></script>
+    <script src="/static/js/detail.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

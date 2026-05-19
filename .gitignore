@@ -1,0 +1,32 @@
+# Environment Variables
+.env
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Databases
+*.sqlite3
+*.db
+tasks.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDEs / Editor Configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
