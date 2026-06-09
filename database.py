@@ -100,8 +100,7 @@ def delete_task(task_id):
     conn = get_connection()
     cursor = conn.cursor()
     
-    # Recursively find all descendants to delete
-    # SQLite CTE for recursive delete
+
     cursor.execute('''
         WITH RECURSIVE descendants AS (
             SELECT id FROM tasks WHERE id = ?

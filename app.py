@@ -8,7 +8,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize the database
+
 database.init_db()
 
 @app.route('/')
@@ -90,7 +90,7 @@ def breakdown_task():
         
         text_response = response.text.strip()
         
-        # Remove any potential markdown formatting if the model still includes it
+
         if text_response.startswith('```json'):
             text_response = text_response[7:]
         if text_response.startswith('```'):

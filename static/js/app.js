@@ -1,12 +1,50 @@
-// Global State
-window.store = {}; // flat map of all tasks by id
+
+window.store = {};
 window.selectedTaskId = null;
-window.activeListId = 'all'; // 'all', 'today', 'upcoming', or custom name
+window.activeListId = 'all';
 
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initApp();
     setupMobileNavigation();
 });
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
+    }
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    if (themeToggleBtn) {
+        themeToggleBtn.innerHTML = theme === 'dark' 
+            ? '<i data-lucide="sun" id="theme-icon"></i>' 
+            : '<i data-lucide="moon" id="theme-icon"></i>';
+        if (window.refreshIcons) window.refreshIcons();
+    }
+    
+    const appLogo = document.getElementById('app-logo');
+    if (appLogo) {
+        appLogo.src = theme === 'dark' ? '/static/img/logo-dark.svg' : '/static/img/logo-light.svg';
+    }
+    
+    const favicon = document.getElementById('favicon');
+    if (favicon) {
+        favicon.href = theme === 'dark' ? '/static/img/logo-dark.svg' : '/static/img/logo-light.svg';
+    }
+}
 
 async function initApp() {
     await refreshAll();
@@ -16,13 +54,13 @@ async function refreshAll() {
     try {
         const tasks = await API.getTasks();
         
-        // Rebuild store
+
         window.store = {};
         tasks.forEach(task => {
             window.store[task.id] = task;
         });
 
-        // Trigger renders
+
         if (typeof renderSidebar === 'function') renderSidebar();
         if (typeof renderTaskList === 'function') renderTaskList();
         if (typeof renderDetailView === 'function') renderDetailView();
@@ -38,18 +76,18 @@ async function refreshAll() {
 function selectTask(id) {
     window.selectedTaskId = id;
     
-    // On mobile, show detail view
+
     if (window.innerWidth < 768 && id) {
         document.body.classList.add('detail-active');
     }
     
-    if (typeof renderTaskList === 'function') renderTaskList(); // to update highlights
+    if (typeof renderTaskList === 'function') renderTaskList();
     if (typeof renderDetailView === 'function') renderDetailView();
 }
 
 function setActiveList(listId) {
     window.activeListId = listId;
-    window.selectedTaskId = null; // Clear selection when switching lists
+    window.selectedTaskId = null;
     
     if (typeof renderSidebar === 'function') renderSidebar();
     if (typeof renderTaskList === 'function') renderTaskList();
@@ -57,7 +95,7 @@ function setActiveList(listId) {
     
     updateMobileTopBar();
     
-    // Close sidebar on mobile after selection
+
     const sidebar = document.getElementById('sidebar');
     if (window.innerWidth < 1024 && sidebar) {
         sidebar.classList.remove('open');
@@ -73,7 +111,7 @@ function updateMobileTopBar() {
     if (title === 'today') title = 'Today';
     if (title === 'upcoming') title = 'Upcoming';
     
-    // Capitalize custom list names
+
     if (title !== 'All Tasks' && title !== 'Today' && title !== 'Upcoming') {
         title = title.charAt(0).toUpperCase() + title.slice(1);
     }
@@ -101,10 +139,10 @@ function setupMobileNavigation() {
         });
     }
     
-    // Close sidebar if clicking outside on tablet
+
     document.addEventListener('click', (e) => {
         if (window.innerWidth < 1024 && sidebar && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && e.target !== menuBtn) {
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
                 sidebar.classList.remove('open');
             }
         }

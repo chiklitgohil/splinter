@@ -1,4 +1,4 @@
-// detail.js
+
 
 function renderDetailView() {
     const placeholder = document.getElementById('detail-placeholder');
@@ -20,11 +20,11 @@ function renderDetailView() {
     placeholder.classList.add('hidden');
     content.classList.remove('hidden');
     
-    // Title
+
     const titleInput = document.getElementById('detail-title');
     titleInput.value = task.title;
     
-    // Status button
+
     const statusBtn = document.getElementById('detail-status-btn');
     if (task.status === 'done') {
         statusBtn.textContent = 'Mark open';
@@ -36,18 +36,18 @@ function renderDetailView() {
         statusBtn.style.borderColor = 'var(--success-color)';
     }
     
-    // Due Date
+
     const dueDateInput = document.getElementById('detail-due-date');
     dueDateInput.value = task.due_date || '';
     
-    // Labels
+
     renderLabels(task);
     
-    // Notes
+
     const notesTextarea = document.getElementById('detail-notes');
     notesTextarea.value = task.notes || '';
     
-    // Subtasks
+
     renderDirectSubtasks(task.id);
     
     setupDetailEventListeners(task.id);
@@ -122,13 +122,13 @@ function renderDirectSubtasks(parentId) {
     });
 }
 
-// Keep track of which task's events we've attached to avoid duplicates
+
 let currentDetailTaskId = null;
 
 function setupDetailEventListeners(taskId) {
     if (currentDetailTaskId === taskId) return;
     
-    // Remove old listeners by cloning nodes (quickest way)
+
     const titleInput = document.getElementById('detail-title');
     const titleClone = titleInput.cloneNode(true);
     titleInput.parentNode.replaceChild(titleClone, titleInput);
@@ -155,7 +155,7 @@ function setupDetailEventListeners(taskId) {
 
     currentDetailTaskId = taskId;
     
-    // Re-attach listeners
+
     titleClone.addEventListener('blur', () => {
         if (titleClone.value.trim() !== window.store[taskId].title) {
             updateDetailField('title', titleClone.value.trim());
@@ -222,7 +222,7 @@ async function updateDetailField(field, value) {
         const updated = await API.updateTask(taskId, { [field]: value });
         window.store[taskId] = updated;
         
-        // Re-render components
+
         renderDetailView();
         renderTaskList();
     } catch (error) {
@@ -230,5 +230,5 @@ async function updateDetailField(field, value) {
     }
 }
 
-// Expose to window
+
 window.renderDetailView = renderDetailView;

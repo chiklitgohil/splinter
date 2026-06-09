@@ -1,4 +1,4 @@
-// tasklist.js
+
 window.collapsedTasks = window.collapsedTasks || new Set();
 function renderTaskList() {
     const container = document.getElementById('root-tasks-container');
@@ -6,7 +6,7 @@ function renderTaskList() {
 
     container.innerHTML = '';
     
-    // Filter root tasks
+
     let rootTasks = [];
     const allTasks = Object.values(window.store);
     
@@ -27,11 +27,11 @@ function renderTaskList() {
             t.due_date <= nextWeekStr
         );
     } else {
-        // Custom user list
+
         rootTasks = allTasks.filter(t => t.labels && t.labels.includes(window.activeListId));
     }
     
-    // Sort by position
+
     rootTasks.sort((a, b) => a.position - b.position);
     
     if (rootTasks.length === 0) {
@@ -43,7 +43,7 @@ function renderTaskList() {
             </div>
         `;
     } else {
-        // Render each root task and its descendants recursively
+
         rootTasks.forEach(task => {
             const node = renderTaskNode(task.id, 0);
             if (node) container.appendChild(node);
@@ -61,13 +61,13 @@ function renderTaskNode(taskId, depth) {
     const wrapper = document.createElement('div');
     wrapper.className = 'task-node';
     
-    // Create the row
+
     const row = document.createElement('div');
     row.className = 'task-row' + (task.status === 'done' ? ' done' : '') + (window.selectedTaskId === taskId ? ' selected' : '');
-    // Indent left side. 1rem = 16px
+
     row.style.paddingLeft = `calc(var(--spacing-md) + ${depth}rem)`;
     
-    // Context Menu Right Click
+
     row.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         window.contextMenuTaskId = taskId;
@@ -90,7 +90,7 @@ function renderTaskNode(taskId, depth) {
     const children = Object.values(window.store).filter(t => t.parent_id === taskId);
     children.sort((a, b) => a.position - b.position);
 
-    // Chevron if has children
+
     if (children.length > 0) {
         const chevron = document.createElement('div');
         chevron.className = 'task-chevron' + (window.collapsedTasks.has(taskId) ? ' collapsed' : '');
@@ -106,7 +106,7 @@ function renderTaskNode(taskId, depth) {
         };
         row.appendChild(chevron);
     } else {
-        // Spacer for alignment
+
         const spacer = document.createElement('div');
         spacer.style.width = '1.5rem';
         spacer.style.height = '1.5rem';
@@ -114,13 +114,13 @@ function renderTaskNode(taskId, depth) {
         row.appendChild(spacer);
     }
     
-    // Checkbox
+
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'task-checkbox';
     checkbox.checked = task.status === 'done';
     checkbox.onclick = async (e) => {
-        e.stopPropagation(); // prevent selecting row
+        e.stopPropagation();
         const newStatus = checkbox.checked ? 'done' : 'open';
         try {
             const updated = await API.updateTask(taskId, { status: newStatus });
@@ -129,25 +129,25 @@ function renderTaskNode(taskId, depth) {
             if (window.selectedTaskId === taskId) renderDetailView();
         } catch (error) {
             console.error("Update failed", error);
-            checkbox.checked = !checkbox.checked; // revert UI
+            checkbox.checked = !checkbox.checked;
         }
     };
     
-    // Title
+
     const titleSpan = document.createElement('span');
     titleSpan.className = 'task-title';
     titleSpan.textContent = task.title;
     
-    // Row click to select
+
     row.onclick = () => {
         window.selectTask(taskId);
     };
 
-    // Actions
+
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'task-actions';
     
-    // AI Button
+
     const aiBtn = document.createElement('button');
     aiBtn.className = 'ai-btn';
     aiBtn.innerHTML = '<i data-lucide="sparkles"></i>';
@@ -157,7 +157,7 @@ function renderTaskNode(taskId, depth) {
         openAIPopover(taskId, aiBtn);
     };
     
-    // Add subtask inline button
+
     const addSubBtn = document.createElement('button');
     addSubBtn.className = 'add-subtask-btn';
     addSubBtn.innerHTML = '<i data-lucide="plus"></i>';
@@ -175,7 +175,7 @@ function renderTaskNode(taskId, depth) {
     row.appendChild(actionsDiv);
     wrapper.appendChild(row);
 
-    // Children container
+
     const childrenContainer = document.createElement('div');
     childrenContainer.className = 'children-container';
     childrenContainer.id = `children-${taskId}`;
@@ -198,13 +198,13 @@ function toggleInlineAddSubtask(parentId, wrapper, depth) {
     let addInputDiv = document.getElementById(`inline-add-${parentId}`);
     
     if (addInputDiv) {
-        // Toggle visibility
+
         addInputDiv.classList.toggle('hidden');
         if (!addInputDiv.classList.contains('hidden')) {
             addInputDiv.querySelector('input').focus();
         }
     } else {
-        // Create it
+
         addInputDiv = document.createElement('div');
         addInputDiv.id = `inline-add-${parentId}`;
         addInputDiv.className = 'inline-add-subtask';
@@ -218,7 +218,7 @@ function toggleInlineAddSubtask(parentId, wrapper, depth) {
             if (e.key === 'Enter' && input.value.trim()) {
                 input.disabled = true;
                 try {
-                    // Position at end
+
                     const siblings = Object.values(window.store).filter(t => t.parent_id === parentId);
                     const pos = siblings.length > 0 ? Math.max(...siblings.map(s => s.position)) + 1 : 0;
                     
@@ -228,7 +228,7 @@ function toggleInlineAddSubtask(parentId, wrapper, depth) {
                     input.disabled = false;
                     renderTaskList();
                     if (window.selectedTaskId === parentId) renderDetailView();
-                    // Don't close input, user might want to add another
+
                     setTimeout(() => {
                         const newInput = document.querySelector(`#inline-add-${parentId} input`);
                         if (newInput) newInput.focus();
@@ -244,14 +244,14 @@ function toggleInlineAddSubtask(parentId, wrapper, depth) {
         
         addInputDiv.appendChild(input);
         
-        // Insert after row, before children
+
         const row = wrapper.querySelector('.task-row');
         wrapper.insertBefore(addInputDiv, row.nextSibling);
         input.focus();
     }
 }
 
-// Global active popover to clean up clicks outside
+
 let activePopover = null;
 
 async function openAIPopover(taskId, btnEl) {
@@ -270,11 +270,11 @@ async function openAIPopover(taskId, btnEl) {
     const popover = document.createElement('div');
     popover.className = 'ai-popover';
     
-    // Position below button
+
     const rect = btnEl.getBoundingClientRect();
     popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    // Try to align right edge with button, but keep in viewport
-    let leftPos = rect.right - 256; // 16rem = 256px
+
+    let leftPos = rect.right - 256;
     if (leftPos < 10) leftPos = 10;
     popover.style.left = `${leftPos}px`;
     
@@ -282,7 +282,7 @@ async function openAIPopover(taskId, btnEl) {
     document.body.appendChild(popover);
     activePopover = popover;
 
-    // Click outside to dismiss
+
     const clickOutside = (e) => {
         if (activePopover && !activePopover.contains(e.target) && e.target !== btnEl) {
             document.body.removeChild(activePopover);
@@ -319,7 +319,7 @@ async function openAIPopover(taskId, btnEl) {
         
         popover.innerHTML = html;
         
-        // Setup buttons
+
         const cancelBtn = popover.querySelector('#ai-cancel-btn');
         cancelBtn.onclick = () => {
             if (activePopover) {
@@ -378,7 +378,7 @@ function setupTaskListEventListeners() {
                     
                     const newTask = await API.createTask(addInput.value.trim(), null, pos);
                     
-                    // If we are in a custom list or today, add that label automatically
+
                     if (window.activeListId !== 'all' && window.activeListId !== 'upcoming') {
                         const updated = await API.updateTask(newTask.id, { labels: [window.activeListId] });
                         window.store[newTask.id] = updated;
@@ -399,7 +399,7 @@ function setupTaskListEventListeners() {
     
     taskListEventsAttached = true;
     
-    // Setup Context Menu Global Delete Action
+
     const deleteBtn = document.getElementById('ctx-delete-btn');
     if (deleteBtn && !deleteBtn.dataset.bound) {
         deleteBtn.dataset.bound = "true";
@@ -433,5 +433,5 @@ function escapeHTML(str) {
     );
 }
 
-// Expose to window
+
 window.renderTaskList = renderTaskList;

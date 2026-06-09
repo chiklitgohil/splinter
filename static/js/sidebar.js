@@ -1,4 +1,4 @@
-// sidebar.js
+
 
 function getUserLists() {
     try {
@@ -16,7 +16,7 @@ function saveUserLists(lists) {
 function renderSidebar() {
     checkMidnightReset();
 
-    // Render Smart Lists Active State
+
     const smartLists = document.getElementById('smart-lists');
     if (smartLists) {
         Array.from(smartLists.children).forEach(li => {
@@ -28,7 +28,7 @@ function renderSidebar() {
         });
     }
 
-    // Render User Lists
+
     const userListsContainer = document.getElementById('user-lists');
     if (userListsContainer) {
         userListsContainer.innerHTML = '';
@@ -83,7 +83,7 @@ let sidebarEventsAttached = false;
 function setupSidebarEventListeners() {
     if (sidebarEventsAttached) return;
     
-    // Smart list clicks
+
     const smartLists = document.getElementById('smart-lists');
     if (smartLists) {
         smartLists.addEventListener('click', (e) => {
@@ -94,7 +94,7 @@ function setupSidebarEventListeners() {
         });
     }
 
-    // Add list
+
     const addBtn = document.getElementById('add-list-btn');
     const addInput = document.getElementById('add-list-input');
     
@@ -117,9 +117,9 @@ function setupSidebarEventListeners() {
                     addInput.value = '';
                     addInput.classList.add('hidden');
                     addBtn.classList.remove('hidden');
-                    setActiveList(name); // Select the new list
+                    setActiveList(name);
                 } else {
-                    // Empty, just close
+
                     addInput.classList.add('hidden');
                     addBtn.classList.remove('hidden');
                 }
@@ -141,11 +141,11 @@ function setupSidebarEventListeners() {
 }
 
 async function checkMidnightReset() {
-    const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const todayStr = new Date().toISOString().split('T')[0];
     const lastReset = localStorage.getItem('lastResetDate');
     
     if (lastReset !== todayStr) {
-        // Find tasks with "today" label
+
         const tasksToUpdate = Object.values(window.store).filter(t => t.labels && t.labels.includes('today'));
         
         if (tasksToUpdate.length > 0) {
@@ -159,7 +159,7 @@ async function checkMidnightReset() {
                     console.error("Failed to clear today label for task", task.id, e);
                 }
             }
-            // If currently viewing today list, refresh
+
             if (window.activeListId === 'today') {
                 if (typeof renderTaskList === 'function') renderTaskList();
                 if (typeof renderDetailView === 'function') renderDetailView();
@@ -170,5 +170,5 @@ async function checkMidnightReset() {
     }
 }
 
-// Expose to window
+
 window.renderSidebar = renderSidebar;
