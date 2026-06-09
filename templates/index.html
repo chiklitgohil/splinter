@@ -35,9 +35,21 @@
                 <div class="sidebar-section">
                     <h2>Smart Lists</h2>
                     <ul id="smart-lists" class="list-group">
-                        <li data-id="all" class="list-item active">All Tasks</li>
-                        <li data-id="today" class="list-item">Today</li>
-                        <li data-id="upcoming" class="list-item">Upcoming</li>
+                        <li data-id="all" class="list-item active">
+                            <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+                                <i data-lucide="inbox"></i> Inbox
+                            </div>
+                        </li>
+                        <li data-id="today" class="list-item">
+                            <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+                                <i data-lucide="sun"></i> Today
+                            </div>
+                        </li>
+                        <li data-id="upcoming" class="list-item">
+                            <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+                                <i data-lucide="calendar"></i> Upcoming
+                            </div>
+                        </li>
                     </ul>
                 </div>
                 <div class="sidebar-section">
@@ -56,7 +68,7 @@
 
         <main class="panel" id="task-list">
             <div class="task-list-header">
-                <h2 id="current-list-title">All Tasks</h2>
+                <h2 id="current-list-title">Inbox</h2>
             </div>
             <div id="root-tasks-container">
 

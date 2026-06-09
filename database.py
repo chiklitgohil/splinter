@@ -114,10 +114,4 @@ def delete_task(task_id):
     conn.commit()
     conn.close()
 
-def reorder_tasks(ordered_ids):
-    conn = get_connection()
-    cursor = conn.cursor()
-    for index, task_id in enumerate(ordered_ids):
-        cursor.execute('UPDATE tasks SET position = ? WHERE id = ?', (index, task_id))
-    conn.commit()
-    conn.close()
+

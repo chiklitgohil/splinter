@@ -46,6 +46,36 @@ function setTheme(theme) {
     }
 }
 
+let audioCtx = null;
+function playDoneSound() {
+    try {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+        console.log("Audio play failed", e);
+    }
+}
+window.playDoneSound = playDoneSound;
+
 async function initApp() {
     await refreshAll();
 }
@@ -107,12 +137,12 @@ function updateMobileTopBar() {
     if (!titleEl) return;
     
     let title = window.activeListId;
-    if (title === 'all') title = 'All Tasks';
+    if (title === 'all') title = 'Inbox';
     if (title === 'today') title = 'Today';
     if (title === 'upcoming') title = 'Upcoming';
     
 
-    if (title !== 'All Tasks' && title !== 'Today' && title !== 'Upcoming') {
+    if (title !== 'Inbox' && title !== 'Today' && title !== 'Upcoming') {
         title = title.charAt(0).toUpperCase() + title.slice(1);
     }
     

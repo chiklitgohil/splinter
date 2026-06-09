@@ -1,5 +1,18 @@
 
-window.collapsedTasks = window.collapsedTasks || new Set();
+function getCollapsedTasks() {
+    try {
+        const stored = localStorage.getItem('collapsedTasks');
+        return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch (e) {
+        return new Set();
+    }
+}
+
+function saveCollapsedTasks() {
+    localStorage.setItem('collapsedTasks', JSON.stringify(Array.from(window.collapsedTasks)));
+}
+
+window.collapsedTasks = getCollapsedTasks();
 function renderTaskList() {
     const container = document.getElementById('root-tasks-container');
     if (!container) return;
@@ -32,7 +45,11 @@ function renderTaskList() {
     }
     
 
-    rootTasks.sort((a, b) => a.position - b.position);
+    const openTasks = rootTasks.filter(t => t.status !== 'done');
+    const doneTasks = rootTasks.filter(t => t.status === 'done');
+
+    openTasks.sort((a, b) => a.position - b.position);
+    doneTasks.sort((a, b) => a.position - b.position);
     
     if (rootTasks.length === 0) {
         container.innerHTML = `
@@ -43,11 +60,43 @@ function renderTaskList() {
             </div>
         `;
     } else {
-
-        rootTasks.forEach(task => {
+        openTasks.forEach(task => {
             const node = renderTaskNode(task.id, 0);
             if (node) container.appendChild(node);
         });
+
+        if (doneTasks.length > 0) {
+            const doneHeader = document.createElement('div');
+            doneHeader.className = 'done-header';
+            doneHeader.innerHTML = `<i data-lucide="chevron-down" class="done-chevron"></i> <span>Completed (${doneTasks.length})</span>`;
+            
+            const doneContainer = document.createElement('div');
+            doneContainer.className = 'done-container';
+            
+            if (window.collapsedDoneSection) {
+                doneContainer.classList.add('hidden');
+                doneHeader.querySelector('.done-chevron').style.transform = 'rotate(-90deg)';
+            }
+            
+            doneHeader.onclick = () => {
+                window.collapsedDoneSection = !window.collapsedDoneSection;
+                if (window.collapsedDoneSection) {
+                    doneContainer.classList.add('hidden');
+                    doneHeader.querySelector('.done-chevron').style.transform = 'rotate(-90deg)';
+                } else {
+                    doneContainer.classList.remove('hidden');
+                    doneHeader.querySelector('.done-chevron').style.transform = 'rotate(0deg)';
+                }
+            };
+            
+            doneTasks.forEach(task => {
+                const node = renderTaskNode(task.id, 0);
+                if (node) doneContainer.appendChild(node);
+            });
+            
+            container.appendChild(doneHeader);
+            container.appendChild(doneContainer);
+        }
     }
 
     setupTaskListEventListeners();
@@ -88,7 +137,10 @@ function renderTaskNode(taskId, depth) {
     });
     
     const children = Object.values(window.store).filter(t => t.parent_id === taskId);
-    children.sort((a, b) => a.position - b.position);
+    children.sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'done' ? 1 : -1;
+        return a.position - b.position;
+    });
 
 
     if (children.length > 0) {
@@ -102,6 +154,7 @@ function renderTaskNode(taskId, depth) {
             } else {
                 window.collapsedTasks.add(taskId);
             }
+            saveCollapsedTasks();
             if (typeof renderTaskList === 'function') renderTaskList();
         };
         row.appendChild(chevron);
@@ -122,6 +175,9 @@ function renderTaskNode(taskId, depth) {
     checkbox.onclick = async (e) => {
         e.stopPropagation();
         const newStatus = checkbox.checked ? 'done' : 'open';
+        if (newStatus === 'done' && window.playDoneSound) {
+            window.playDoneSound();
+        }
         try {
             const updated = await API.updateTask(taskId, { status: newStatus });
             window.store[taskId] = updated;

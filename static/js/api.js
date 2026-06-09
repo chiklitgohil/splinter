@@ -41,12 +41,7 @@ const API = {
         });
     },
 
-    async reorderTasks(orderedIds) {
-        return this.request('/api/tasks/reorder', {
-            method: 'POST',
-            body: JSON.stringify({ ordered_ids: orderedIds })
-        });
-    },
+
 
     async breakdownTask(taskId, title, existingChildren = []) {
         return this.request('/api/ai/breakdown', {

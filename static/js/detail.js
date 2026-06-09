@@ -20,6 +20,12 @@ function renderDetailView() {
     placeholder.classList.add('hidden');
     content.classList.remove('hidden');
     
+    if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId !== window.selectedTaskId) {
+        content.style.animation = 'none';
+        content.offsetHeight;
+        content.style.animation = null;
+    }
+    
 
     const titleInput = document.getElementById('detail-title');
     titleInput.value = task.title;
@@ -98,6 +104,9 @@ function renderDirectSubtasks(parentId) {
         checkbox.onclick = async (e) => {
             e.stopPropagation();
             const newStatus = checkbox.checked ? 'done' : 'open';
+            if (newStatus === 'done' && window.playDoneSound) {
+                window.playDoneSound();
+            }
             try {
                 const updated = await API.updateTask(child.id, { status: newStatus });
                 window.store[child.id] = updated;
@@ -210,6 +219,9 @@ function setupDetailEventListeners(taskId) {
     statusBtnClone.addEventListener('click', () => {
         const currentStatus = window.store[taskId].status;
         const newStatus = currentStatus === 'done' ? 'open' : 'done';
+        if (newStatus === 'done' && window.playDoneSound) {
+            window.playDoneSound();
+        }
         updateDetailField('status', newStatus);
     });
 }

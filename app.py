@@ -46,12 +46,7 @@ def delete_task(task_id):
     database.delete_task(task_id)
     return jsonify({"success": True})
 
-@app.route('/api/tasks/reorder', methods=['POST'])
-def reorder_tasks():
-    data = request.json
-    ordered_ids = data.get('ordered_ids', [])
-    database.reorder_tasks(ordered_ids)
-    return jsonify({"success": True})
+
 
 @app.route('/api/ai/breakdown', methods=['POST'])
 def breakdown_task():
