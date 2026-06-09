@@ -33,10 +33,12 @@ function renderDetailView() {
 
     const statusBtn = document.getElementById('detail-status-btn');
     if (task.status === 'done') {
-        statusBtn.textContent = 'Mark open';
+        statusBtn.innerHTML = '<i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Reopen';
         statusBtn.className = 'btn outline-btn';
+        statusBtn.style.color = '';
+        statusBtn.style.borderColor = '';
     } else {
-        statusBtn.textContent = 'Mark done';
+        statusBtn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i> Complete';
         statusBtn.className = 'btn outline-btn';
         statusBtn.style.color = 'var(--success-color)';
         statusBtn.style.borderColor = 'var(--success-color)';
