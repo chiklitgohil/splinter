@@ -268,7 +268,7 @@ function toggleInlineAddSubtask(parentId, wrapper, depth) {
         
         const input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = 'New subtask (Enter to save)';
+        input.placeholder = 'New subtask';
         
         input.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter' && input.value.trim()) {
