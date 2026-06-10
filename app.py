@@ -54,7 +54,7 @@ def breakdown_task():
     task_id = data.get('task_id')
     title = data.get('title')
     existing_children = data.get('existing_children', [])
-    
+
     if not title:
         return jsonify({"error": "Task title is required"}), 400
 
@@ -64,27 +64,27 @@ def breakdown_task():
 
     try:
         client = genai.Client()
-        
+
         prompt = f"""
         Break down the following task into smaller, actionable subtasks.
         Task title: "{title}"
         """
         if existing_children:
             prompt += f"\nThese subtasks already exist (do not suggest them again): {', '.join(existing_children)}"
-            
+
         prompt += """
         Return ONLY a JSON array of string titles for the suggested subtasks.
         Do not include markdown formatting like ```json or any other text/explanation.
         Example output: ["Subtask 1", "Subtask 2"]
         """
-        
+
         response = client.models.generate_content(
             model="gemini-3-flash-preview",
             contents=prompt,
         )
-        
+
         text_response = response.text.strip()
-        
+
 
         if text_response.startswith('```json'):
             text_response = text_response[7:]
@@ -92,17 +92,17 @@ def breakdown_task():
             text_response = text_response[3:]
         if text_response.endswith('```'):
             text_response = text_response[:-3]
-            
+
         text_response = text_response.strip()
-        
+
         import json
         suggestions = json.loads(text_response)
-        
+
         if not isinstance(suggestions, list):
             raise ValueError("Response is not a JSON array")
-            
+
         return jsonify({"suggestions": suggestions})
-        
+
     except Exception as e:
         print(f"Error calling Gemini API: {e}")
         return jsonify({"error": str(e)}), 500

@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
-    
+
     const themeToggleBtn = document.getElementById('theme-toggle');
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
