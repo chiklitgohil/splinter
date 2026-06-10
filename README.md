@@ -1,4 +1,4 @@
-# Splinter 🌲
+# Splinter ⚡
 
 > An AI-powered, infinitely nestable task management application designed for deep focus and breaking down complex projects.
 
